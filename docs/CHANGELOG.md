@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.2
+
+### Bug Fixes
+
+- [`1177d67`](https://github.com/noctisynth/semifold/commit/1177d671fbdcb9c5b7be50ed987c480ee9508f77): Preserve and localize GitHub operation, API status, validation details, and underlying errors across CI pull requests, publishing releases and assets, status queries and comments, and changelog metadata lookup while retaining existing failure and recovery behavior.
+
 ## v1.1.1
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "@semifold/cli",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Semifold command-line interface for cross-language monorepo releases",
   "author": {
     "name": "苏向夜",

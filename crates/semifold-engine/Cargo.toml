@@ -1,6 +1,6 @@
 [package]
 name = "semifold-engine"
-version = "0.2.2"
+version = "0.2.3"
 edition.workspace = true
 description.workspace = true
 license.workspace = true
@@ -19,7 +19,7 @@ httpdate = "1.0.3"
 minijinja = { version = "2.12.0", default-features = false, features = ["serde"] }
 octocrab = "0.54.1"
 reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls"] }
-semifold-changelog = { version = "0.3.1", path = "../changelog" }
+semifold-changelog = { version = "0.3.2", path = "../changelog" }
 semifold-core = { version = "0.1.1", path = "../semifold-core" }
 semifold-resolver = { version = "0.4.2", path = "../resolver" }
 semver = "1.0.28"

@@ -251,6 +251,7 @@ github_release = "Create GitHub releases for published packages, only available 
 allow_dirty = "Allow publishing packages with dirty Git working tree"
 
 [cli.ci]
+oversized_body_notice = "The full release notes exceed GitHub's pull request body limit. See this pull request's Files changed tab for the complete changelogs and package list. The version summary below may omit packages to stay within the limit."
 heading = "Semifold CI"
 complete = "Release pull request workflow completed"
 publish_complete = "Publish workflow completed"

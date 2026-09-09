@@ -251,6 +251,7 @@ github_release = "为发布的包创建 GitHub Release，仅在 CI 环境中可�
 allow_dirty = "允许发布包含不干净的 Git 工作树的包"
 
 [cli.ci]
+oversized_body_notice = "完整发布说明超过 GitHub 的拉取请求正文长度限制。请在本拉取请求的 Files changed 页面查看完整变更日志与软件包列表。为满足长度限制，下方版本摘要可能省略部分软件包。"
 heading = "Semifold CI"
 complete = "发布 Pull Request 工作流已完成"
 publish_complete = "发布工作流已完成"

@@ -26,6 +26,7 @@ pub struct ReleasePullRequestContext<'a> {
     pub release: &'a ReleaseContext,
     pub branch: String,
     pub changelogs: BTreeMap<PackageId, String>,
+    pub oversized_body_notice: &'a str,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -36,6 +37,9 @@ pub struct RenderedReleasePullRequest {
 
 pub const DEFAULT_RELEASE_COMMIT_MESSAGE: &str = "chore(release): bump versions";
 pub const DEFAULT_RELEASE_PULL_REQUEST_TITLE: &str = "chore(release): bump versions";
+
+// A UTF-8 byte budget conservatively satisfies GitHub's character limit too.
+const RELEASE_PULL_REQUEST_BODY_LIMIT: usize = 65_536;
 
 pub fn render_release_commit_message(
     template: Option<&str>,
@@ -86,10 +90,36 @@ pub fn render_release_pull_request(
         .collect::<Vec<_>>()
         .join("\n\n");
 
-    RenderedReleasePullRequest {
-        title,
-        body: format!("# Releases\n\n{changelogs}"),
+    let mut body = format!("# Releases\n\n{changelogs}");
+    if body.len() > RELEASE_PULL_REQUEST_BODY_LIMIT {
+        body = String::from("# Releases\n\n");
+        for character in context.oversized_body_notice.chars() {
+            if body.len() + character.len_utf8() > RELEASE_PULL_REQUEST_BODY_LIMIT {
+                break;
+            }
+            body.push(character);
+        }
+        for (package, release) in &context.release.plan.packages {
+            // HTML escaping keeps arbitrary configured package IDs on one Markdown line.
+            let package = package
+                .as_str()
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('\r', "&#13;")
+                .replace('\n', "&#10;");
+            let line = format!(
+                "\n\n- <code>{package}</code>: {} → {}",
+                release.current_version, release.next_version
+            );
+            if body.len() + line.len() > RELEASE_PULL_REQUEST_BODY_LIMIT {
+                break;
+            }
+            body.push_str(&line);
+        }
     }
+
+    RenderedReleasePullRequest { title, body }
 }
 
 fn render_release_message_template(
@@ -570,6 +600,7 @@ mod tests {
                 (PackageId::new("zeta"), "zeta changes".to_string()),
                 (PackageId::new("alpha"), "alpha changes".to_string()),
             ]),
+            oversized_body_notice: "See Files changed for full release notes; the summary is size-limited.",
         };
 
         assert!(std::ptr::eq(context.release, &release));
@@ -585,6 +616,121 @@ mod tests {
         assert_eq!(
             render_release_pull_request("Custom release".to_string(), &context).title,
             "Custom release"
+        );
+    }
+
+    #[test]
+    fn release_pull_request_preserves_bodies_at_the_byte_limit() {
+        let release = context(vec![planned_package("core", semver::Version::new(1, 1, 0))]);
+        let prefix = "# Releases\n\n## core\n\n";
+        for size in [
+            RELEASE_PULL_REQUEST_BODY_LIMIT - 1,
+            RELEASE_PULL_REQUEST_BODY_LIMIT,
+        ] {
+            let changelog = "x".repeat(size - prefix.len());
+            let context = ReleasePullRequestContext {
+                release: &release,
+                branch: "release".to_string(),
+                changelogs: BTreeMap::from([(PackageId::new("core"), changelog.clone())]),
+                oversized_body_notice: "Full notes are in Files changed.",
+            };
+            let rendered = render_release_pull_request("Release".to_string(), &context);
+            assert_eq!(rendered.body, format!("{prefix}{changelog}"));
+            assert_eq!(rendered.body.len(), size);
+        }
+    }
+
+    #[test]
+    fn release_pull_request_summarizes_oversized_ascii_and_unicode_notes() {
+        let release = context(vec![
+            planned_package("zeta", semver::Version::new(2, 0, 0)),
+            planned_package("alpha", semver::Version::new(1, 1, 0)),
+        ]);
+        for changelog in [
+            "x".repeat(RELEASE_PULL_REQUEST_BODY_LIMIT - "# Releases\n\n## alpha\n\n".len() + 1),
+            "修复🚀".repeat(10_000),
+        ] {
+            let context = ReleasePullRequestContext {
+                release: &release,
+                branch: "release/alpha".to_string(),
+                changelogs: BTreeMap::from([(PackageId::new("alpha"), changelog.clone())]),
+                oversized_body_notice: "完整变更日志见 Files changed；摘要可能省略部分包。",
+            };
+            let rendered = render_release_pull_request("Custom release".to_string(), &context);
+            assert_eq!(rendered.title, "Custom release");
+            assert_eq!(
+                rendered.body,
+                concat!(
+                    "# Releases\n\n完整变更日志见 Files changed；摘要可能省略部分包。",
+                    "\n\n- <code>alpha</code>: 1.0.0 → 1.1.0",
+                    "\n\n- <code>zeta</code>: 1.0.0 → 2.0.0",
+                )
+            );
+            assert!(rendered.body.len() <= RELEASE_PULL_REQUEST_BODY_LIMIT);
+            assert_eq!(context.changelogs[&PackageId::new("alpha")], changelog);
+        }
+    }
+
+    #[test]
+    fn release_pull_request_bounds_large_package_summaries_on_complete_lines() {
+        let release = context(
+            (0..2_000)
+                .map(|index| {
+                    planned_package(
+                        &format!("package-{index:04}"),
+                        semver::Version::new(1, 1, 0),
+                    )
+                })
+                .collect(),
+        );
+        let context = ReleasePullRequestContext {
+            release: &release,
+            branch: "release".to_string(),
+            changelogs: BTreeMap::from([(
+                PackageId::new("package-0000"),
+                "x".repeat(RELEASE_PULL_REQUEST_BODY_LIMIT),
+            )]),
+            oversized_body_notice: "See Files changed for all packages; some summaries may be omitted.",
+        };
+        let rendered = render_release_pull_request("Release".to_string(), &context);
+        assert!(rendered.body.len() <= RELEASE_PULL_REQUEST_BODY_LIMIT);
+        assert!(rendered.body.contains("<code>package-0000</code>"));
+        assert!(!rendered.body.contains("<code>package-1999</code>"));
+        assert!(rendered.body.ends_with("1.0.0 → 1.1.0"));
+        assert!(
+            rendered.body.len() + "\n\n- <code>package-1999</code>: 1.0.0 → 1.1.0".len()
+                > RELEASE_PULL_REQUEST_BODY_LIMIT
+        );
+    }
+
+    #[test]
+    fn release_pull_request_bounds_long_notices_and_escapes_summary_names() {
+        let package = "包<&>\nname";
+        let release = context(vec![planned_package(
+            package,
+            semver::Version::new(1, 1, 0),
+        )]);
+        let long_notice = "说明🚀".repeat(RELEASE_PULL_REQUEST_BODY_LIMIT);
+        let mut context = ReleasePullRequestContext {
+            release: &release,
+            branch: "release".to_string(),
+            changelogs: BTreeMap::from([(
+                PackageId::new(package),
+                "x".repeat(RELEASE_PULL_REQUEST_BODY_LIMIT),
+            )]),
+            oversized_body_notice: &long_notice,
+        };
+        let rendered = render_release_pull_request("Release".to_string(), &context);
+        assert!(rendered.body.len() <= RELEASE_PULL_REQUEST_BODY_LIMIT);
+        assert!(RELEASE_PULL_REQUEST_BODY_LIMIT - rendered.body.len() < 4);
+        assert!(!rendered.body.contains("<code>"));
+
+        context.oversized_body_notice = "See Files changed.";
+        let rendered = render_release_pull_request("Release".to_string(), &context);
+        assert!(
+            rendered
+                .body
+                .contains("<code>包&lt;&amp;&gt;&#10;name</code>")
         );
     }
 

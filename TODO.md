@@ -296,6 +296,8 @@
 
 ### Publish plan
 
+- [x] 为发布 PR 正文增加 65,536 字节预算、超限版本摘要与双语提示，验证边界并同步文档
+
 - [x] 定义可从当前 workspace 重建的 `PublishContext`、`PublishPlan` 和 `PackagePublish`
 - [x] publish 不依赖或持久化 version 阶段的 `ReleaseContext`，也不从已消费 changeset 反推发布集合
 - [x] 依据 `ReleasePlan` 构造唯一 workspace `ReleaseContext`

@@ -664,6 +664,7 @@ pub struct ReleasePullRequestContext<'a> {
     pub release: &'a ReleaseContext,
     pub branch: String,
     pub changelogs: BTreeMap<PackageId, String>,
+    pub oversized_body_notice: &'a str,
 }
 
 pub struct RenderedReleasePullRequest {
@@ -691,6 +692,16 @@ PR 正文不开放用户模板，继续由纯 renderer 以 `# Releases` 开始�
 追加各 package changelog。`ReleasePullRequestContext.branch` 是已经由同一个 `ReleaseContext`
 渲染并校验的 release branch，供后续 Forge 边界创建或更新 PR；renderer 不从 package 集合中
 推断主 package，也不将 changelog 塞回 `ReleaseContext` 或恢复全局万能模板 map。
+
+发布 PR 创建与更新共用同一正文长度保护：以 65,536 UTF-8 字节作为保守预算，确保不超过
+GitHub 的 65,536 字符限制。预算内保持原正文逐字不变；超限则保留 `# Releases`，改为按
+`PackageId` 稳定排序的当前版本 → 下一版本摘要，不修改完整 changelog 文件。应用层通过
+`rust-i18n` 提供 `oversized_body_notice`，说明完整变更日志与包列表位于 PR 的 Files changed，
+正文摘要受长度限制。摘要只追加预算内的完整 package 行；单行或包集合过大时停止追加，
+不截断 Markdown 行或 Unicode 字符。提示本身异常超长时在 UTF-8 边界截断，仍保证预算。
+renderer 不访问网络、环境变量或文件系统，不扩张 `ReleaseContext`，也不新增配置项。
+测试覆盖原格式兼容、预算边界、中文与 emoji、多包排序、摘要超限和异常长提示；创建与更新
+必须继续消费同一个 `RenderedReleasePullRequest.body`。
 
 当前没有已证明的项目级模板字段，因此首版不引入 `ProjectContext`。应用层的
 `Project` 仍负责 root、changeset directory、config path 和强类型配置的加载；这些

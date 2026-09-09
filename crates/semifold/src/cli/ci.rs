@@ -107,10 +107,12 @@ pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::R
         file_edits: _,
         unconsumed_changesets: _,
     } = version::prepare_and_apply_release(project, release_plan, dry_run, &terminal).await?;
+    let oversized_body_notice = t!("cli.ci.oversized_body_notice");
     let pull_request_context = ReleasePullRequestContext {
         release: &release_context,
         branch: release_branch,
         changelogs: changelogs_map,
+        oversized_body_notice: &oversized_body_notice,
     };
     let pull_request =
         render_release_pull_request(release_pull_request_title, &pull_request_context);

@@ -17,6 +17,8 @@ The rendered release branch must differ from the base branch. Semifold checks th
 
 Contributors therefore only need to commit a changeset with their code and merge that pull request. Maintainers review versions and changelogs in the generated release pull request.
 
+Release pull request bodies normally include each package's changelog. If the body exceeds a conservative 65,536 UTF-8 byte budget, Semifold replaces it with a package version summary and a notice directing reviewers to the pull request's **Files changed** tab for the complete changelogs. The summary includes only complete package entries that fit the budget, in package ID order. Changelog files remain complete. This protection applies both when creating and when updating the pull request; no configuration is required.
+
 ## When no changesets remain
 
 After the release pull request is merged, the next base-branch run sees no pending changesets and calls the publish operation with GitHub Release handling enabled. Packages are checked and published in dependency order.

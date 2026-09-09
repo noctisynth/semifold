@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0
+
+### Bug Fixes
+
+- [`a884e9a`](https://github.com/noctisynth/semifold/commit/a884e9ab5796984f57085a3b66a48a842d298990): Run Bun-specific agent documentation tests as JavaScript modules so Next.js type checking does not require Bun globals or test runner types.
+
+### New Features
+
+- [`5541855`](https://github.com/noctisynth/semifold/commit/5541855b689eda4b445cf507f84e63a2a52841c0): Provide language-specific agent documentation indexes, per-page Markdown generated from the public documentation source, discoverable Markdown alternatives, and a portable Semifold release-workflow skill.
+
 ## v1.1.2
 
 ### Bug Fixes

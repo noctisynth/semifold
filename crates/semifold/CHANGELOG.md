@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.4
+
+### Bug Fixes
+
+- [`45bb00e`](https://github.com/noctisynth/semifold/commit/45bb00ecec391378c15f281ee32a9abd3a086873): Keep release pull request bodies within GitHub's size limit by replacing oversized changelogs with a bounded package version summary and localized guidance to the complete changelog files. Apply the same protection to pull request creation and updates.
+
 ## v0.3.3
 
 ### Bug Fixes

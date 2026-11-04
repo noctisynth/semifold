@@ -6,6 +6,7 @@ pub mod config_management;
 pub mod config_sync;
 pub mod discovery;
 pub mod file_edit_executor;
+pub mod git;
 pub mod init;
 pub mod package_path;
 pub mod project;

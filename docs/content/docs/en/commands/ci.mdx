@@ -57,3 +57,9 @@ Downstream jobs read `needs.release.outputs.version` or `needs.release.outputs.p
 GitHub failures identify the operation and include the HTTP status, API message, validation details, and documentation link when available. Client failures include their underlying error chain. These details do not require `--debug`; GitHub tokens are redacted. A 403 includes permission checks appropriate to the operation, without assuming that permissions are the only possible cause.
 
 Release pull request queries, creation, updates, and branch push failures stop the command. When `ci` selects publishing, it uses the same Release and asset diagnostics as `publish`.
+
+## Local Git and push compatibility
+
+Local operations use gix, including staging and creating the release commit. The release branch starts at the current HEAD; Semifold switches the HEAD reference without checking out the same tree again, preserving the generated version files. The bot identity is supplied to the commit and reflogs without overwriting repository `user.name` or `user.email` configuration. Conflicted or sparse indexes are rejected before staging.
+
+Only remote push uses libgit2, with the existing `origin` and token authentication. When changesets require a release PR, Semifold checks that the push adapter can open the repository and find `origin` before applying release files. This is a local preflight, not a network or credential check. libgit2's directory-wildcard ownership limitation still applies to this path. Skipped branches, dry runs, and the no-changeset publish path do not open the push adapter. `smif publish` does not push a Git branch.

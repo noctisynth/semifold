@@ -5,6 +5,7 @@ use rust_i18n::t;
 use semifold_core::RepositoryContext;
 
 pub mod ci;
+mod ci_push;
 pub mod commit;
 pub mod config;
 pub(crate) mod github;

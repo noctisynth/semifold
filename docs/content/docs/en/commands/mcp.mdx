@@ -27,3 +27,5 @@ Each package input contains `package`, `bump` (`patch`, `minor`, or `major`), an
 Mutation tools are serialized. Update and delete use optimistic SHA-256 revisions to reject stale callers, tool panics are isolated, invalid arguments return structured errors, and a following request can continue on the same server.
 
 The global `--dry-run` changes mutation tools into validated previews without writing changeset files.
+
+Repository discovery and changeset tools use the same local gix trust policy as the CLI. Repository access failures return `GIT_ACCESS_DENIED`, missing repositories return `PROJECT_NOT_FOUND`, and other Git loading failures return `PROJECT_GIT_ERROR`, with the underlying diagnostic retained.

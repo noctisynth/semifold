@@ -14,6 +14,17 @@
 
 ## 阶段 0：建立重构安全网
 
+### 本地 Git 迁移到 gix（PRD 14.6）
+
+- [x] 使用官方 gix 0.90.0 迁移本地仓库发现、严格信任与 worktree 定位
+- [x] 迁移完整工作区状态与 changeset 历史、diff，保留现有语义
+- [x] 迁移引用校验、CI 发布分支、暂存、tree 与 commit 创建
+- [x] 将 git2 收缩到独立 push adapter，写入前预检并保留认证行为
+- [x] 保留 Git 底层诊断并区分 CLI/MCP 错误类别，同步双语 locale
+- [x] 验证隔离信任配置、状态、历史、CI 提交与所有重新打开入口
+- [x] 同步双语用户文档，明确 CI push 的目录通配限制
+- [x] 创建独立 changeset、验证发布计划并完成测试
+
 ### Changeset 与版本规则
 
 - [x] 为 changeset 解析、序列化和清理建立测试

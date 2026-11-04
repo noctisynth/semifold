@@ -251,6 +251,8 @@ github_release = "为发布的包创建 GitHub Release，仅在 CI 环境中可�
 allow_dirty = "允许发布包含不干净的 Git 工作树的包"
 
 [cli.ci]
+push_preflight_failed = "无法在修改发布文件前准备 CI Git 推送：%{error}"
+local_git_failed = "无法创建发布提交：%{error}"
 oversized_body_notice = "完整发布说明超过 GitHub 的拉取请求正文长度限制。请在本拉取请求的 Files changed 页面查看完整变更日志与软件包列表。为满足长度限制，下方版本摘要可能省略部分软件包。"
 heading = "Semifold CI"
 complete = "发布 Pull Request 工作流已完成"
@@ -400,3 +402,8 @@ update_comment = "更新发布计划 PR 评论"
 create_release = "创建 GitHub Release"
 upload_asset = "上传 GitHub Release 附件"
 query_commit_pull_request = "查询 changelog 的 PR 元数据"
+
+[cli.git]
+access_denied = "Git 仓库访问被拒绝（%{path}）：%{error}"
+not_repository = "未能从 %{path} 找到 Git 仓库：%{error}"
+open_failed = "无法从 %{path} 读取 Git 仓库：%{error}"

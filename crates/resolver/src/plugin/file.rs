@@ -218,7 +218,12 @@ impl ScopedPluginFileClient {
                     .map_err(|name| PluginFileError::NonUtf8Path {
                         path: name.to_string_lossy().into_owned(),
                     })?;
-            let logical_path = logical_directory.join(name);
+            // Protocol paths always use '/', independently of the host OS.
+            let logical_path = if logical_directory.as_str().is_empty() {
+                Utf8PathBuf::from(name)
+            } else {
+                Utf8PathBuf::from(format!("{logical_directory}/{name}"))
+            };
             let file_type = entry
                 .file_type()
                 .map_err(|source| PluginFileError::InspectPath {

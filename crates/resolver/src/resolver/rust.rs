@@ -999,7 +999,10 @@ mod tests {
             .unwrap();
         let edit = &edits[0];
 
-        assert_eq!(edit.path.as_str(), "crates/app/Cargo.toml");
+        assert_eq!(
+            edit.path,
+            camino::Utf8Path::new("crates/app").join("Cargo.toml")
+        );
         assert_eq!(
             edit.expected,
             semifold_core::FileEditExpectation::Existing {

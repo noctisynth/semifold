@@ -110,6 +110,21 @@ pub(crate) fn project_load_error_message_with_fallback(
     fallback: String,
 ) -> String {
     let message = match error {
+        ProjectLoadError::RepositoryOpenFailed { path, source } => {
+            let key = if source.is_permission_denied() {
+                "cli.git.access_denied"
+            } else if source.is_not_found() {
+                "cli.git.not_repository"
+            } else {
+                "cli.git.open_failed"
+            };
+            t!(
+                key,
+                path = path,
+                error = semifold_engine::git::diagnostic(source)
+            )
+            .into_owned()
+        }
         ProjectLoadError::ConfigInvalid {
             source: ResolveError::ReleaseBranchMatchesBase { branch, .. },
             ..

@@ -14,7 +14,7 @@ authors.workspace = true
 workspace = true
 
 [dependencies]
-git2 = { version = "0.21.0", features = ["vendored-openssl"] }
+gix = { version = "0.90.0", default-features = false, features = ["basic", "sha1", "parallel"] }
 minijinja = { version = "2.12.0", default-features = false, features = ["builtins", "serde"] }
 octocrab = "0.54.1"
 pathdiff = "0.2.3"

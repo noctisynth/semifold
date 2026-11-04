@@ -145,7 +145,7 @@ pub fn render_release_branch(
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
     let branch = environment.render_str(template, context!(release => release_value))?;
     let reference = format!("refs/heads/{branch}");
-    if !git2::Reference::is_valid_name(&reference) {
+    if gix::validate::reference::branch_name(reference.as_str().into()).is_err() {
         return Err(ReleaseBranchRenderError::InvalidGitBranch { branch });
     }
     Ok(branch)
@@ -516,6 +516,7 @@ mod tests {
             .is_err()
         );
         assert!(render_release_branch("release branch", &context).is_err());
+        assert!(render_release_branch("HEAD", &context).is_err());
     }
 
     #[test]

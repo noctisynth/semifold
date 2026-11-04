@@ -113,11 +113,12 @@ pub async fn prepare_release(
     release: ReleasePlan,
     options: &ReleaseExecutionOptions,
 ) -> Result<ReleaseApplyPlan, ReleasePrepareError> {
-    let repository =
-        git2::Repository::open(&project.root).map_err(|source| ReleasePrepareError::GitOpen {
+    let repository = crate::git::open_repository(project.root.as_std_path()).map_err(|source| {
+        ReleasePrepareError::GitOpen {
             path: project.root.clone(),
             source,
-        })?;
+        }
+    })?;
     let workspace = load_workspace_graph(project.root.as_std_path(), &project.config)?;
     let mut release_context = ReleaseContext::from_plan(&release);
     if let Some(repository) = options.repository.clone() {
@@ -510,11 +511,11 @@ where
 
 #[derive(Debug, Error)]
 pub enum ReleasePrepareError {
-    #[error("failed to open Git repository at {path}")]
+    #[error("failed to open Git repository at {path}: {source:#}")]
     GitOpen {
         path: Utf8PathBuf,
         #[source]
-        source: git2::Error,
+        source: gix::Error,
     },
     #[error(transparent)]
     Workspace(#[from] WorkspaceLoadError),
@@ -650,7 +651,10 @@ mod tests {
             false,
         )
         .expect("new changelog edit must be planned");
-        assert_eq!(new_edit.path.as_str(), "package/CHANGELOG.md");
+        assert_eq!(
+            new_edit.path,
+            camino::Utf8Path::new("package").join("CHANGELOG.md")
+        );
         assert_eq!(new_edit.expected, FileEditExpectation::Missing);
         assert_eq!(new_edit.new_content, "# Changelog\n\n## v1.0.0\n");
 

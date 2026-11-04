@@ -154,14 +154,8 @@ impl<D> SemifoldService<D> {
             return Ok(());
         }
         let repository =
-            git2::Repository::open(project.root.as_std_path()).map_err(AppError::GitOpen)?;
-        let statuses = repository.statuses(None).map_err(AppError::GitStatus)?;
-        if statuses.iter().all(|entry| {
-            matches!(
-                entry.status(),
-                git2::Status::CURRENT | git2::Status::IGNORED
-            )
-        }) {
+            crate::git::open_repository(project.root.as_std_path()).map_err(AppError::GitOpen)?;
+        if !crate::git::has_changes(&repository).map_err(AppError::GitStatus)? {
             Ok(())
         } else {
             Err(AppError::DirtyWorktree)
@@ -504,10 +498,10 @@ pub enum AppError {
         #[source]
         source: std::io::Error,
     },
-    #[error("failed to open Git repository")]
-    GitOpen(#[source] git2::Error),
-    #[error("failed to inspect Git worktree status")]
-    GitStatus(#[source] git2::Error),
+    #[error("failed to open Git repository: {0:#}")]
+    GitOpen(#[source] gix::Error),
+    #[error("failed to inspect Git worktree status: {0:#}")]
+    GitStatus(#[source] gix::Error),
     #[error("Git worktree contains uncommitted changes")]
     DirtyWorktree,
     #[error("failed to plan configuration synchronization")]

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use git2::{DiffOptions, Oid, Repository};
+use gix::{ObjectId, Repository};
 use octocrab::Octocrab;
 
 use semifold_resolver::error::ResolveError;
@@ -10,7 +10,7 @@ use crate::{RELEASE_MARKER_END, RELEASE_MARKER_PREFIX};
 
 #[derive(Debug)]
 pub struct CommitInfo {
-    pub oid: Oid,
+    pub oid: ObjectId,
     pub author: Option<String>,
     pub message: String,
 }
@@ -87,47 +87,61 @@ fn pull_request_number(message: &str) -> Option<u64> {
     })
 }
 
-pub fn find_first_commit_for_path(repo: &Repository, path: &Path) -> Option<CommitInfo> {
-    let mut revwalk = repo.revwalk().ok()?;
-    revwalk.push_head().ok()?;
-    revwalk
-        .set_sorting(git2::Sort::TIME | git2::Sort::REVERSE)
-        .ok()?;
+pub fn find_first_commit_for_path(
+    repo: &Repository,
+    path: &Path,
+) -> Result<Option<CommitInfo>, ResolveError> {
+    find_first_commit(repo, path).map_err(|error| ResolveError::GitError {
+        message: format!("{error:#}"),
+    })
+}
 
-    for oid in revwalk {
-        let oid = oid.ok()?;
-        let commit = repo.find_commit(oid).ok()?;
-        let tree = commit.tree().ok()?;
-
-        if commit.parent_count() == 0 {
-            if tree.get_path(std::path::Path::new(path)).is_ok() {
-                return Some(CommitInfo {
-                    oid,
-                    author: commit.author().name().ok().map(ToOwned::to_owned),
-                    message: commit.message().ok()?.to_string(),
-                });
-            }
+fn find_first_commit(repo: &Repository, path: &Path) -> gix::Result<Option<CommitInfo>> {
+    let head = repo.head()?;
+    let Some(id) = head.id() else {
+        return Ok(None);
+    };
+    let commits = repo
+        .rev_walk([id.detach()])
+        .sorting(gix::revision::walk::Sorting::ByCommitTime(
+            gix::traverse::commit::simple::CommitTimeOrder::NewestFirst,
+        ))
+        .all()?
+        .collect::<gix::Result<Vec<_>>>()?;
+    let shallow = repo.shallow_commits()?;
+    for info in commits.into_iter().rev() {
+        let commit = repo.find_commit(info.id)?;
+        let tree = commit.tree()?;
+        let entry = tree.lookup_entry_by_path(path)?;
+        let parent_id = if shallow.as_ref().is_some_and(|ids| ids.contains(&commit.id)) {
+            None
         } else {
-            let parent = commit.parent(0).ok()?;
-            let parent_tree = parent.tree().ok()?;
-
-            let mut diff_opts = DiffOptions::new();
-            diff_opts.pathspec(path);
-
-            let diff = repo
-                .diff_tree_to_tree(Some(&parent_tree), Some(&tree), Some(&mut diff_opts))
-                .ok()?;
-
-            if diff.deltas().len() > 0 {
-                return Some(CommitInfo {
-                    oid,
-                    author: commit.author().name().ok().map(ToOwned::to_owned),
-                    message: commit.message().ok()?.to_string(),
-                });
-            }
+            commit.parent_ids().next()
+        };
+        let parent_entry = match parent_id {
+            Some(parent) => repo
+                .find_commit(parent)?
+                .tree()?
+                .lookup_entry_by_path(path)?,
+            None => None,
+        };
+        let entry_key = entry
+            .as_ref()
+            .map(|entry| (entry.object_id(), entry.mode()));
+        let parent_key = parent_entry
+            .as_ref()
+            .map(|entry| (entry.object_id(), entry.mode()));
+        if entry_key != parent_key {
+            let author = commit.author()?;
+            let message = commit.message_raw()?;
+            return Ok(Some(CommitInfo {
+                oid: commit.id,
+                author: std::str::from_utf8(author.name).ok().map(ToOwned::to_owned),
+                message: String::from_utf8_lossy(message).into_owned(),
+            }));
         }
     }
-    None
+    Ok(None)
 }
 
 /// Renders the complete changelog content after inserting one newest entry.
@@ -283,4 +297,99 @@ pub async fn insert_changelog<P: AsRef<Path>>(
         render_changelog(path, content.as_deref(), new_entry, version, require_marker)?;
     std::fs::write(path, new_content)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod git_history_tests {
+    use super::*;
+    use std::{
+        fs,
+        sync::atomic::{AtomicU64, Ordering},
+    };
+
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+
+    #[test]
+    fn history_finds_the_original_change_and_preserves_author_and_message() {
+        let root = std::env::temp_dir().join(format!(
+            "semifold-history-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        let repo = gix::init(&root).unwrap();
+        assert!(
+            find_first_commit_for_path(&repo, Path::new("change.md"))
+                .unwrap()
+                .is_none()
+        );
+        let mut time = gix::date::parse::TimeBuf::default();
+        let mut identity = gix::actor::Signature {
+            name: "作者".into(),
+            email: "author@example.invalid".into(),
+            time: gix::date::Time::new(1_700_000_000, 0),
+        };
+        let empty = repo.empty_tree().id;
+        let initial = repo
+            .commit_as(
+                identity.to_ref(&mut time),
+                identity.to_ref(&mut gix::date::parse::TimeBuf::default()),
+                "HEAD",
+                "initial",
+                empty,
+                std::iter::empty::<gix::ObjectId>(),
+            )
+            .unwrap()
+            .detach();
+        let blob = repo.write_blob(b"first\n").unwrap().detach();
+        let mut tree = repo.edit_tree(empty).unwrap();
+        tree.upsert("change.md", gix::objs::tree::EntryKind::Blob, blob)
+            .unwrap();
+        let tree_id = tree.write().unwrap().detach();
+        identity.time.seconds += 1;
+        let first = repo
+            .commit_as(
+                identity.to_ref(&mut time),
+                identity.to_ref(&mut gix::date::parse::TimeBuf::default()),
+                "HEAD",
+                "original (#42)",
+                tree_id,
+                [initial],
+            )
+            .unwrap()
+            .detach();
+        identity.time.seconds += 1;
+        repo.commit_as(
+            identity.to_ref(&mut time),
+            identity.to_ref(&mut gix::date::parse::TimeBuf::default()),
+            "HEAD",
+            "later",
+            tree_id,
+            [first],
+        )
+        .unwrap();
+        let info = find_first_commit_for_path(&repo, Path::new("change.md"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(info.oid, first);
+        assert_eq!(info.author.as_deref(), Some("作者"));
+        assert_eq!(info.message, "original (#42)");
+        assert!(
+            find_first_commit_for_path(&repo, Path::new("missing"))
+                .unwrap()
+                .is_none()
+        );
+        let newest = repo.head_commit().unwrap().id;
+        fs::write(repo.git_dir().join("shallow"), format!("{newest}\n")).unwrap();
+        drop(repo);
+        let shallow = gix::open(&root).unwrap();
+        assert_eq!(
+            find_first_commit_for_path(&shallow, Path::new("change.md"))
+                .unwrap()
+                .unwrap()
+                .oid,
+            newest
+        );
+        drop(shallow);
+        fs::remove_dir_all(root).unwrap();
+    }
 }

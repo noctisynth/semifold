@@ -86,9 +86,9 @@ pub fn plan_config_sync(
         })
         .collect::<Result<Vec<_>, ConfigSyncPlanningError>>()?;
     let discovery = PackageDiscoveryService::from_config(project_root, config)
-        .map_err(ConfigSyncPlanningError::Discovery)?
+        .map_err(|source| ConfigSyncPlanningError::Discovery(Box::new(source)))?
         .discover(project_root, &scope.resolvers)
-        .map_err(ConfigSyncPlanningError::Discovery)?;
+        .map_err(|source| ConfigSyncPlanningError::Discovery(Box::new(source)))?;
     let changesets = changesets
         .iter()
         .map(|changeset| ChangesetReference {
@@ -122,7 +122,7 @@ pub enum ConfigSyncPlanningError {
         package: PackageId,
         source: PackagePathError,
     },
-    Discovery(PackageDiscoveryError),
+    Discovery(Box<PackageDiscoveryError>),
 }
 
 impl fmt::Display for ConfigSyncPlanningError {
@@ -159,7 +159,7 @@ impl Error for ConfigSyncPlanningError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::ConfiguredPackagePath { source, .. } => Some(source),
-            Self::Discovery(source) => Some(source),
+            Self::Discovery(source) => Some(source.as_ref()),
             Self::IncompletePrune
             | Self::ResolverNotEnabled { .. }
             | Self::NonUtf8ConfigPath { .. } => None,

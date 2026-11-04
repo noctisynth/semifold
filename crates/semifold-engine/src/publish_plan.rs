@@ -166,7 +166,7 @@ pub async fn plan_publish(
             private: !snapshot.publishable,
         };
         let tag_reference = format!("refs/tags/{}", package.tag);
-        if !git2::Reference::is_valid_name(&tag_reference) {
+        if gix::refs::FullName::try_from(tag_reference.as_str()).is_err() {
             return Err(PublishPlanError::InvalidTag {
                 tag: package.tag.clone(),
             });

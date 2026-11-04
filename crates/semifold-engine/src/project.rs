@@ -76,12 +76,13 @@ impl ProjectLocation {
         changeset_dir: Option<&Path>,
     ) -> Result<Self, ProjectLoadError> {
         let start = utf8_path(start)?;
-        let repository = git2::Repository::discover(start.as_std_path()).map_err(|source| {
-            ProjectLoadError::RepositoryOpenFailed {
-                path: start.clone(),
-                source,
-            }
-        })?;
+        let repository =
+            crate::git::discover_repository(start.as_std_path()).map_err(|source| {
+                ProjectLoadError::RepositoryOpenFailed {
+                    path: start.clone(),
+                    source,
+                }
+            })?;
         let root = repository
             .workdir()
             .ok_or(ProjectLoadError::RepositoryNotFound)?;
@@ -144,11 +145,11 @@ pub enum ProjectLoadError {
         #[source]
         source: ResolveError,
     },
-    #[error("failed to open repository from {path}")]
+    #[error("failed to open repository from {path}: {source:#}")]
     RepositoryOpenFailed {
         path: Utf8PathBuf,
         #[source]
-        source: git2::Error,
+        source: gix::Error,
     },
 }
 
@@ -205,7 +206,7 @@ mod tests {
             NEXT_FIXTURE.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir_all(root.join(".changes")).unwrap();
-        git2::Repository::init(&root).unwrap();
+        gix::init(&root).unwrap();
         root
     }
 
@@ -221,8 +222,8 @@ mod tests {
         let project = ProjectLocation::discover(&root).unwrap().load().unwrap();
 
         assert_eq!(
-            project.root,
-            Utf8PathBuf::from_path_buf(root.clone()).unwrap()
+            project.root.as_std_path().canonicalize().unwrap(),
+            root.canonicalize().unwrap()
         );
         assert_eq!(project.changeset_dir, project.root.join(".changes"));
         assert_eq!(

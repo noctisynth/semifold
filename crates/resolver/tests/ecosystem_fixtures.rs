@@ -64,7 +64,15 @@ fn render_packages(mut packages: Vec<PackageInspection>) -> String {
         .map(|package| {
             format!(
                 "name = {}\nversion = {}\npath = {}\nprivate = {}",
-                package.manifest_name, package.version, package.path, !package.publishable
+                package.manifest_name,
+                package.version,
+                package
+                    .path
+                    .components()
+                    .map(|component| component.as_str())
+                    .collect::<Vec<_>>()
+                    .join("/"),
+                !package.publishable
             )
         })
         .collect::<Vec<_>>()

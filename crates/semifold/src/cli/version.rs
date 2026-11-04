@@ -353,10 +353,16 @@ pub(crate) fn render_worktree_error(error: AppError) -> anyhow::Error {
     match error {
         AppError::DirtyWorktree => anyhow::anyhow!(t!("cli.dirty_repo")),
         AppError::GitOpen(error) => {
-            anyhow::anyhow!(t!("cli.version.git_open_failed", error = error))
+            anyhow::anyhow!(t!(
+                "cli.version.git_open_failed",
+                error = semifold_engine::git::diagnostic(&error)
+            ))
         }
         AppError::GitStatus(error) => {
-            anyhow::anyhow!(t!("cli.version.git_status_failed", error = error))
+            anyhow::anyhow!(t!(
+                "cli.version.git_status_failed",
+                error = semifold_engine::git::diagnostic(&error)
+            ))
         }
         error => error.into(),
     }

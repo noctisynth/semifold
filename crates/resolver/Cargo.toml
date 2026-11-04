@@ -19,7 +19,6 @@ boa_gc = "0.21.1"
 boa_runtime = { version = "0.21.1", default-features = false, features = ["fetch", "url"] }
 camino = "1.2.4"
 clap = { version = "4.5", features = ["derive"], optional = true }
-git2 = { version = "0.21.0", features = ["vendored-openssl"] }
 glob = "0.3.3"
 http = "1.3"
 log = "0.4.27"

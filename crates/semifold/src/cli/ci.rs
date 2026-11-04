@@ -3,7 +3,6 @@ use std::env;
 
 use anyhow::Context as _;
 use clap::Parser;
-use git2::{Cred, IndexAddOption, PushOptions, RemoteCallbacks, Repository};
 use octocrab::{Octocrab, params};
 use rust_i18n::t;
 
@@ -25,32 +24,6 @@ use semifold_engine::{
 #[derive(Debug, Parser)]
 pub struct CI;
 
-fn build_callbacks(token: &str) -> RemoteCallbacks<'static> {
-    let mut callbacks = RemoteCallbacks::new();
-    let token = token.to_string();
-
-    callbacks.credentials(move |_url, username_from_url, _allowed_types| {
-        if username_from_url.is_some() {
-            Cred::userpass_plaintext(&token, "")
-        } else {
-            Cred::userpass_plaintext("x-access-token", &token)
-        }
-    });
-
-    callbacks
-}
-
-fn force_push_release(repo: &Repository, token: &str, branch: &str) -> anyhow::Result<()> {
-    let callbacks = build_callbacks(token);
-    let mut push_opts = PushOptions::new();
-    push_opts.remote_callbacks(callbacks);
-
-    let mut remote = repo.find_remote("origin").context("find remote origin")?;
-    let ref_spec = format!("+refs/heads/{branch}:refs/heads/{branch}", branch = branch);
-    remote.push(&[&ref_spec], Some(&mut push_opts))?;
-    Ok(())
-}
-
 pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::Result<()> {
     let terminal = Terminal::detect();
     terminal.heading(&t!("cli.ci.heading"));
@@ -65,12 +38,6 @@ pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::R
     let ref_name = env::var("GITHUB_REF_NAME").context("GITHUB_REF_NAME is not set")?;
 
     log::debug!("GITHUB_REF_NAME: {}", ref_name);
-
-    let repo = Repository::open(project.root.as_std_path())
-        .map_err(|_| anyhow::anyhow!(t!("cli.ci.git_repo_not_initialized")))?;
-    let mut git_config = repo.config()?;
-    git_config.set_str("user.name", "github-actions[bot]")?;
-    git_config.set_str("user.email", "github-actions[bot]@users.noreply.github.com")?;
 
     let is_base_branch = ref_name == config.branches.base;
     if !is_base_branch {
@@ -102,6 +69,14 @@ pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::R
     )
     .map_err(|error| anyhow::anyhow!(t!("cli.ci.pull_request_title_invalid", error = error)))?;
 
+    let push = if dry_run {
+        None
+    } else {
+        Some(super::ci_push::PushAdapter::open(
+            project.root.as_std_path(),
+        )?)
+    };
+
     let semifold_engine::ApplyReport {
         changelogs: changelogs_map,
         file_edits: _,
@@ -132,38 +107,30 @@ pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::R
         .build()
         .map_err(|error| GitHubFailure::new(GitHubOperation::Initialize, error))?;
 
-    let head = repo.head()?;
-    let commit = head.peel_to_commit()?;
+    let repository =
+        semifold_engine::git::open_repository(project.root.as_std_path()).map_err(|error| {
+            anyhow::anyhow!(t!(
+                "cli.ci.local_git_failed",
+                error = semifold_engine::git::diagnostic(&error)
+            ))
+        })?;
+    semifold_engine::git::commit_release(
+        &repository,
+        &pull_request_context.branch,
+        &release_commit_message,
+    )
+    .map_err(|error| anyhow::anyhow!(t!("cli.ci.local_git_failed", error = error)))?;
+    if let Some(push) = push {
+        push.force_push(&github_token, &pull_request_context.branch)
+            .map_err(|error| {
+                anyhow::anyhow!(t!(
+                    "cli.github.push_failed",
+                    error = super::github::render_command_error(&error)
+                ))
+            })?;
+    }
 
     let base_branch = &config.branches.base;
-    repo.branch(&pull_request_context.branch, &commit, true)?;
-    repo.set_head(&format!("refs/heads/{}", pull_request_context.branch))?;
-    repo.checkout_head(None)?;
-
-    let mut index = repo.index()?;
-    index.add_all(["."].iter(), IndexAddOption::DEFAULT, None)?;
-    index.write()?;
-
-    let tree_id = index.write_tree()?;
-    let tree = repo.find_tree(tree_id)?;
-    let sig = repo.signature()?;
-    let parent_commit = repo.head()?.peel_to_commit()?;
-    repo.commit(
-        Some("HEAD"),
-        &sig,
-        &sig,
-        &release_commit_message,
-        &tree,
-        &[&parent_commit],
-    )?;
-
-    force_push_release(&repo, &github_token, &pull_request_context.branch).map_err(|error| {
-        anyhow::anyhow!(t!(
-            "cli.github.push_failed",
-            error = semifold_changelog::github::format_error_chain(error.as_ref())
-        ))
-    })?;
-
     let head = format!("{}:{}", owner, pull_request_context.branch);
     let pulls = octocrab.pulls(owner, repo_name);
     let existing_prs = pulls
@@ -204,15 +171,4 @@ pub(crate) async fn run(_ci: &CI, project: &Project, dry_run: bool) -> anyhow::R
 
     terminal.summary(StepOutcome::Success, &t!("cli.ci.complete"));
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn libgit2_supports_https_transport() {
-        assert!(
-            git2::Version::get().https(),
-            "the CI release push requires libgit2 HTTPS support"
-        );
-    }
 }

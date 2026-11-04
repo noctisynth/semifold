@@ -251,6 +251,8 @@ github_release = "Create GitHub releases for published packages, only available 
 allow_dirty = "Allow publishing packages with dirty Git working tree"
 
 [cli.ci]
+push_preflight_failed = "Cannot prepare the CI Git push before changing release files: %{error}"
+local_git_failed = "Cannot create the release commit: %{error}"
 oversized_body_notice = "The full release notes exceed GitHub's pull request body limit. See this pull request's Files changed tab for the complete changelogs and package list. The version summary below may omit packages to stay within the limit."
 heading = "Semifold CI"
 complete = "Release pull request workflow completed"
@@ -400,3 +402,8 @@ update_comment = "update the release plan pull request comment"
 create_release = "create the GitHub Release"
 upload_asset = "upload the GitHub Release asset"
 query_commit_pull_request = "query changelog pull request metadata"
+
+[cli.git]
+access_denied = "Git repository access denied at %{path}: %{error}"
+not_repository = "Git repository not found from %{path}: %{error}"
+open_failed = "Cannot read the Git repository from %{path}: %{error}"

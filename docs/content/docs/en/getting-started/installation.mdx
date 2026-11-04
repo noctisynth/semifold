@@ -117,3 +117,16 @@ smif --version
 If the command prints the installed Semifold version without an error, the installation is ready.
 
 You can now continue to [your first release](/docs/getting-started/first-release/) or read [what Semifold manages](/docs/introduction/) first.
+
+## Git repositories and shared drives
+
+Semifold uses the embedded Rust `gix` library for local repository discovery, status checks, history, and release commits. These operations do not require a Git executable. Ownership checks remain enabled: explicitly authorize shared repositories in protected system or global Git configuration, for example:
+
+```gitconfig
+[safe]
+    directory = E:/Projects/*
+```
+
+On Linux, use the mounted path, such as `/shared/projects/*`. Exact repository paths, `*`, and empty entries that reset earlier trust settings are also supported. A repository cannot grant itself trust through its local config. The gix directory-prefix rule also includes a repository at the prefix directory itself; keep the configured root limited to repositories you trust. Semifold does not change your global Git configuration.
+
+`smif ci` still uses libgit2 for remote push. Its push preflight can reject a shared repository that local gix operations accept when only a directory wildcard is configured. This check runs before release files or refs change. Ordinary `status`, `version`, `publish`, and MCP operations do not use that push adapter. See [CI](/docs/commands/ci/) for the workflow boundary. Configured publish commands, credential helpers, and attribute filters may require their own external tools.

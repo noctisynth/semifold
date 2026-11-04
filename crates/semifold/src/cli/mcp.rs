@@ -486,8 +486,15 @@ fn parse_revision(revision: &str) -> Result<FileHash, McpToolError> {
 
 fn project_error(error: ProjectLoadError) -> McpToolError {
     let code = match &error {
-        ProjectLoadError::RepositoryNotFound | ProjectLoadError::RepositoryOpenFailed { .. } => {
-            "PROJECT_NOT_FOUND"
+        ProjectLoadError::RepositoryNotFound => "PROJECT_NOT_FOUND",
+        ProjectLoadError::RepositoryOpenFailed { source, .. } => {
+            if source.is_permission_denied() {
+                "GIT_ACCESS_DENIED"
+            } else if source.is_not_found() {
+                "PROJECT_NOT_FOUND"
+            } else {
+                "PROJECT_GIT_ERROR"
+            }
         }
         ProjectLoadError::ChangesetDirectoryNotFound | ProjectLoadError::ConfigNotFound => {
             "PROJECT_NOT_INITIALIZED"
@@ -676,7 +683,7 @@ mod tests {
             NEXT_ROOT.fetch_add(1, Ordering::Relaxed)
         ));
         fs::create_dir_all(&root).expect("MCP fixture directory must be created");
-        git2::Repository::init(&root).expect("MCP fixture repository must be initialized");
+        gix::init(&root).expect("MCP fixture repository must be initialized");
         root
     }
 

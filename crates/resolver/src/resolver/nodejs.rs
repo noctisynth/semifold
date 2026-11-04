@@ -743,7 +743,10 @@ mod tests {
             .unwrap()
             .remove(0);
 
-        assert_eq!(edit.path.as_str(), "packages/app/package.json");
+        assert_eq!(
+            edit.path,
+            camino::Utf8Path::new("packages/app").join("package.json")
+        );
         assert_eq!(
             edit.expected,
             semifold_core::FileEditExpectation::Existing {

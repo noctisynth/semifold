@@ -61,10 +61,10 @@ pub fn plan_init(
         .collect::<Vec<_>>();
     let discovery = PackageDiscoveryService::default()
         .discover(location.root.as_std_path(), &ecosystems)
-        .map_err(InitPlanningError::Discovery)?;
+        .map_err(|source| InitPlanningError::Discovery(Box::new(source)))?;
     let packages = discovery
         .default_package_configs()
-        .map_err(InitPlanningError::Discovery)?;
+        .map_err(|source| InitPlanningError::Discovery(Box::new(source)))?;
     let resolver = resolver_configs(&resolvers);
     let config = config::Config {
         branches: BranchesConfig {
@@ -210,7 +210,7 @@ pub enum InitPlanningError {
     #[error("invalid branch configuration")]
     ConfigValidation(#[source] ConfigValidationError),
     #[error("package discovery failed during initialization: {0}")]
-    Discovery(#[source] PackageDiscoveryError),
+    Discovery(#[source] Box<PackageDiscoveryError>),
     #[error("failed to serialize initial configuration {path}: {reason}")]
     ConfigSerialize { path: Utf8PathBuf, reason: String },
     #[error("failed to render initialization workflow")]

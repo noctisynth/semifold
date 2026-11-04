@@ -117,3 +117,16 @@ smif --version
 命令输出已安装的 Semifold 版本且没有报错，就表示安装成功。
 
 现在可以继续[完成第一次发布](/zh/docs/getting-started/first-release/)，也可以先阅读[Semifold 管理什么](/zh/docs/introduction/)。
+
+## Git 仓库与共享盘
+
+Semifold 使用内嵌的 Rust `gix` 库完成本地仓库发现、状态检查、历史查询和发布提交。这些操作不要求安装 Git 可执行文件。所有权检查仍然启用：共享仓库需要在受保护的系统或全局 Git 配置中显式授权，例如：
+
+```gitconfig
+[safe]
+    directory = E:/Projects/*
+```
+
+Linux 请使用挂载路径，例如 `/shared/projects/*`。同时支持精确仓库路径、`*` 和用于重置先前信任列表的空配置项。仓库不能通过自身的局部配置为自己授予信任。gix 的目录前缀规则也包含前缀目录自身的仓库，因此应把配置根目录限定在可信仓库范围内。Semifold 不修改用户的全局 Git 配置。
+
+`smif ci` 的远程 push 仍使用 libgit2。仅配置目录通配规则时，push 预检仍可能拒绝本地 gix 操作可以访问的共享仓库；该检查会在修改发布文件或引用之前执行。普通 `status`、`version`、`publish` 和 MCP 操作不使用此 push 适配器。工作流边界见[持续集成](/zh/docs/commands/ci/)。配置中的发布命令、凭据 helper 和属性过滤器仍可能需要各自的外部工具。

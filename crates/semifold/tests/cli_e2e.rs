@@ -81,6 +81,48 @@ fn run_smif_in_github(root: &Path, arguments: &[&str], output: &Path) -> Output 
 }
 
 #[test]
+fn ci_push_preflight_fails_before_version_files_or_changesets_are_modified() {
+    let root = temporary_project("ci-push-preflight", &config("channel = \"stable\""));
+    let manifest = fs::read(root.join("Cargo.toml")).unwrap();
+    let changeset = fs::read(root.join(".changes/feature.md")).unwrap();
+    let head = fs::read(root.join(".git/HEAD")).unwrap();
+    let result = run_smif_in_github(&root, &["ci"], &root.join("github-output"));
+    assert!(!result.status.success(), "{result:?}");
+    let error = String::from_utf8_lossy(&result.stderr);
+    assert!(error.contains("origin"), "{error}");
+    assert_eq!(fs::read(root.join("Cargo.toml")).unwrap(), manifest);
+    assert_eq!(
+        fs::read(root.join(".changes/feature.md")).unwrap(),
+        changeset
+    );
+    assert_eq!(fs::read(root.join(".git/HEAD")).unwrap(), head);
+    assert!(!root.join("CHANGELOG.md").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn local_commands_work_without_git_on_path() {
+    let root = temporary_project("without-system-git", &config("channel = \"stable\""));
+    for arguments in [
+        &["status"][..],
+        &["--dry-run", "version", "--allow-dirty"][..],
+    ] {
+        let result = Command::new(env!("CARGO_BIN_EXE_smif"))
+            .args(arguments)
+            .current_dir(&root)
+            .env("PATH", "")
+            .env_remove("GITHUB_ACTIONS")
+            .env_remove("GITHUB_REPOSITORY")
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert!(result.status.success(), "{arguments:?}: {result:?}");
+    }
+    assert!(root.join(".changes/feature.md").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn mcp_survives_invalid_tool_arguments_and_serves_the_next_request() {
     let root = temporary_project("mcp-invalid-arguments", &config("channel = \"stable\""));
     let mut child = Command::new(env!("CARGO_BIN_EXE_smif"))

@@ -290,7 +290,7 @@ impl ChangelogRenderer {
 
 pub async fn collect_changelog_context<'release>(
     source: &ChangelogSource<'_>,
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     changesets: &[changeset::Changeset],
     package: ReleasePackageContext<'release>,
     dependency_updates: Vec<DependencyUpdateContext>,
@@ -321,7 +321,7 @@ pub async fn collect_changelog_context<'release>(
                 reason: "Changeset path is not under repo root".to_string(),
             },
         )?;
-        let commit_info = utils::find_first_commit_for_path(repo, &rel_path);
+        let commit_info = utils::find_first_commit_for_path(repo, &rel_path)?;
         let pr_info = if collect_remote_metadata
             && let Some(repository) = source.repository
             && let Some(commit_info) = commit_info.as_ref()
@@ -395,7 +395,7 @@ pub async fn collect_changelog_context<'release>(
 pub async fn generate_changelog<'release>(
     renderer: &ChangelogRenderer,
     source: &ChangelogSource<'_>,
-    repo: &git2::Repository,
+    repo: &gix::Repository,
     changesets: &[changeset::Changeset],
     package: ReleasePackageContext<'release>,
     dependency_updates: Vec<DependencyUpdateContext>,

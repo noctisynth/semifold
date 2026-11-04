@@ -15,14 +15,14 @@ workspace = true
 
 [dependencies]
 gix = { version = "0.90.0", default-features = false, features = ["basic", "sha1", "parallel"] }
-minijinja = { version = "2.12.0", default-features = false, features = ["builtins", "serde"] }
-octocrab = "0.54.1"
+minijinja = { version = "3.0.5", default-features = false, features = ["builtins", "serde"] }
+octocrab = "0.54.9"
 pathdiff = "0.2.3"
 semifold-core = { version = "0.1.1", path = "../semifold-core" }
 semifold-resolver = { version = "0.4.1", path = "../resolver" }
 semver = "1.0.28"
-serde = { version = "1.0.228", features = ["derive"] }
-thiserror = "2.0.17"
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"
 
 [dev-dependencies]
-tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }

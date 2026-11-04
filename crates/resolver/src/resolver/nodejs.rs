@@ -392,12 +392,13 @@ impl NodejsResolver {
 
         let pnpm_workspace_file_path = root.join("pnpm-workspace.yaml");
         let pnpm_packages = if pnpm_workspace_file_path.exists() {
-            let pnpm_workspace_yaml =
-                saphyr::Yaml::load_from_str(&std::fs::read_to_string(&pnpm_workspace_file_path)?)
-                    .map_err(|e| ResolveError::ParseError {
-                    path: pnpm_workspace_file_path.clone(),
-                    reason: e.to_string(),
-                })?;
+            let pnpm_workspace_yaml = saphyr::YamlOwned::load_from_str(&std::fs::read_to_string(
+                &pnpm_workspace_file_path,
+            )?)
+            .map_err(|e| ResolveError::ParseError {
+                path: pnpm_workspace_file_path.clone(),
+                reason: e.to_string(),
+            })?;
             pnpm_workspace_yaml
                 .first()
                 .and_then(|yaml| yaml.as_mapping_get("packages"))

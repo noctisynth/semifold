@@ -15,12 +15,12 @@ readme.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "3.12.1", features = ["napi8"] }
-napi-derive = "3.6.3"
+napi = { version = "3.16.1", features = ["napi8"] }
+napi-derive = "3.7.0"
 semifold = { version = "0.3.0", path = "../semifold" }
 
 [lints]
 workspace = true
 
 [build-dependencies]
-napi-build = "2.4.1"
+napi-build = "2.6.0"

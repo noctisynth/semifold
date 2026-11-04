@@ -75,6 +75,7 @@ impl Fetcher for BoaFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        _signal: Option<boa_engine::JsObject>,
         _context: &std::cell::RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         let request = request.into_inner();
@@ -415,6 +416,7 @@ impl BoaPluginRuntime {
             )
             .map_err(|error| PluginRuntimeError::EntrypointInvocation(error.to_string()))?;
         let result = JsPromise::resolve(result, &mut context)
+            .map_err(|error| PluginRuntimeError::EntrypointInvocation(error.to_string()))?
             .await_blocking(&mut context)
             .map_err(|error| PluginRuntimeError::EntrypointInvocation(error.to_string()))?;
         let result = result
@@ -684,7 +686,8 @@ mod tests {
             matches!(
                 &error,
                 PluginRuntimeError::EntrypointInvocation(message)
-                    if message.to_ascii_lowercase().contains("loop iteration limit")
+                    if message.contains("RuntimeLimitError")
+                        && message.contains("maximum number of iteration loops")
             ),
             "{error:?}"
         );

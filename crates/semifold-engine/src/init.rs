@@ -125,7 +125,7 @@ fn render_workflow(
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
     environment.render_str(
         template,
-        context!(base_branch => base_branch, resolvers => resolvers),
+        context!(base_branch => base_branch, resolvers => minijinja::value::Serde(resolvers)),
     )
 }
 

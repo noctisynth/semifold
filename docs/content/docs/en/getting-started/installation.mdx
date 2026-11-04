@@ -87,6 +87,8 @@ Choose the registry already trusted in your environment:
 cargo install semifold
 ```
 
+Use an up-to-date stable Rust toolchain when compiling from source. The prebuilt CLI and npm packages do not require Rust. For this repository's Bun workspaces and N-API artifact generation on Windows, use a filesystem with directory-link and hard-link support, such as NTFS; these tools cannot create their required links on exFAT. This does not prevent the prebuilt Semifold CLI from accessing shared repositories there.
+
   </Tab>
   <Tab>
 

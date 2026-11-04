@@ -2517,6 +2517,20 @@ changeset 的发布路径、非基础分支与 dry-run 不执行推送。CI push
 信任、状态、历史、发布提交与重开入口；CI push adapter 单独验证且不访问真实远端。
 新增测试不得修改测试机器的真实全局配置。六平台构建继续由现有 CI 矩阵验证。
 
+### 14.7 项目依赖升级与兼容验收
+
+本地 Git 迁移以独立提交交付后，再独立升级 Cargo 与 Bun workspace 的 registry 依赖及锁文件。
+目标为核查时官方发布的最新稳定版本，包含 Boa `0.22`、MiniJinja `3`、saphyr `0.3` 和
+现有 Rust CLI/N-API、文档站、插件 SDK 的依赖。所有 Cargo manifest 变更由 Cargo CLI
+完成，保持既有 default-feature、显式 feature、optional、dev/build 类别与 workspace path
+关系；不引入私有补丁、预发布依赖或系统 Git 要求。
+
+升级只适配依赖 API，不扩大插件文件/网络权限，不启用进程能力或 Boa runtime 默认能力，
+不改变严格模板、配置、changeset、MCP schema v1、双语输出和六平台分发契约。升级后
+验证 Rust tests/Clippy、插件协议生成一致性、SDK 类型与运行时测试、CLI 包检查、文档
+类型检查与无构建测试；文档站完整静态构建仍遵循本地构建授权规则。依赖升级使用另一份
+独立 changeset 和提交，不复用 Git 迁移 changeset。
+
 ## 15. 错误模型
 
 `anyhow` 适合 CLI 最外层补充上下文，但 core、ecosystems 和 engine 内应返回分层错误：

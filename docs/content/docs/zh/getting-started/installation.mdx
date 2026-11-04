@@ -87,6 +87,8 @@ curl -L https://semifold.noctisynth.org/install/install.sh | \
 cargo install semifold
 ```
 
+从源码编译时请使用较新的稳定版 Rust 工具链；预编译 CLI 和 npm 包不要求安装 Rust。在 Windows 上安装本仓库的 Bun workspace 或生成 N-API 产物时，请使用 NTFS 等支持目录链接和硬链接的文件系统；这些工具无法在 exFAT 上创建所需链接。这不影响预编译 Semifold CLI 访问 exFAT 上的共享仓库。
+
   </Tab>
   <Tab>
 

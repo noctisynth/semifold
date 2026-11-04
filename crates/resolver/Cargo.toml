@@ -14,30 +14,31 @@ authors.workspace = true
 workspace = true
 
 [dependencies]
-boa_engine = "0.21.1"
-boa_gc = "0.21.1"
-boa_runtime = { version = "0.21.1", default-features = false, features = ["fetch", "url"] }
-camino = "1.2.4"
-clap = { version = "4.5", features = ["derive"], optional = true }
-glob = "0.3.3"
-http = "1.3"
-log = "0.4.27"
+boa_engine = "0.22.0"
+boa_gc = "0.22.0"
+boa_runtime = { version = "0.22.0", default-features = false, features = ["fetch", "url"] }
+camino = "1.2.6"
+clap = { version = "4.6.7", features = ["derive"], optional = true }
+glob = "0.3.4"
+http = "1.5.0"
+log = "0.4.35"
 pathdiff = "0.2.3"
-regex = "1.11.1"
-reqwest = { version = "0.13.4", default-features = false, features = ["rustls"] }
-saphyr = "0.0.11"
+regex = "1.13.1"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls"] }
+saphyr = "0.3.3"
 semifold-core = { version = "0.1.1", path = "../semifold-core" }
-semver = { version = "1.0.26", features = ["serde"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = { version = "1.0.142", features = ["preserve_order"] }
-sha2 = "0.11.0"
-thiserror = "2.0.15"
-tokio = { version = "1.48", features = ["rt-multi-thread", "net", "sync", "time"] }
-toml_edit = { version = "0.25.13", features = ["serde"] }
+semver = { version = "1.0.28", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+sha2 = "0.11.1"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "net", "sync", "time"] }
+toml_edit = { version = "0.25.18", features = ["serde"] }
 ts-rs = { version = "12.0.1", features = ["semver-impl"], optional = true }
 
 [dev-dependencies]
-insta = "1.48.0"
+insta = "1.49.0"
 
 [features]
 ts-rs = ["dep:ts-rs"]
+clap = ["dep:clap"]

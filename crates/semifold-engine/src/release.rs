@@ -131,7 +131,10 @@ fn render_release_message_template(
 
     let mut environment = Environment::new();
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
-    Ok(environment.render_str(template, context!(release => release_value))?)
+    Ok(environment.render_str(
+        template,
+        context!(release => minijinja::value::Serde(&release_value)),
+    )?)
 }
 
 pub fn render_release_branch(
@@ -143,7 +146,10 @@ pub fn render_release_branch(
 
     let mut environment = Environment::new();
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
-    let branch = environment.render_str(template, context!(release => release_value))?;
+    let branch = environment.render_str(
+        template,
+        context!(release => minijinja::value::Serde(&release_value)),
+    )?;
     let reference = format!("refs/heads/{branch}");
     if gix::validate::reference::branch_name(reference.as_str().into()).is_err() {
         return Err(ReleaseBranchRenderError::InvalidGitBranch { branch });

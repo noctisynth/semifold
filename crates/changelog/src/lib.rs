@@ -220,10 +220,10 @@ impl ChangelogRenderer {
         for item in &changelog.changesets {
             let content = changeset_template
                 .render(context! {
-                    release => changelog.package.release,
-                    package => &changelog.package.package,
+                    release => minijinja::value::Serde(changelog.package.release),
+                    package => minijinja::value::Serde(&changelog.package.package),
                     section => &item.section,
-                    changeset => &item.changeset,
+                    changeset => minijinja::value::Serde(&item.changeset),
                 })
                 .map_err(|source| ChangelogRenderError::RenderChangeset {
                     package: package.clone(),
@@ -259,11 +259,11 @@ impl ChangelogRenderer {
             })?;
         let content = release_template
             .render(context! {
-                release => changelog.package.release,
-                package => &changelog.package.package,
-                changesets => &changelog.changesets,
-                dependency_updates => &changelog.dependency_updates,
-                sections => &sections,
+                release => minijinja::value::Serde(changelog.package.release),
+                package => minijinja::value::Serde(&changelog.package.package),
+                changesets => minijinja::value::Serde(&changelog.changesets),
+                dependency_updates => minijinja::value::Serde(&changelog.dependency_updates),
+                sections => minijinja::value::Serde(&sections),
             })
             .map_err(|source| ChangelogRenderError::RenderRelease {
                 package: package.clone(),

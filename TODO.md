@@ -25,6 +25,13 @@
 - [x] 同步双语用户文档，明确 CI push 的目录通配限制
 - [x] 创建独立 changeset、验证发布计划并完成测试
 
+### 项目依赖升级（PRD 14.7）
+
+- [x] 通过 Cargo CLI 升级所有 registry 直接依赖并更新锁文件，核对 feature/optional/类别未漂移
+- [x] 升级 Bun workspace 直接与传递依赖并适配必要 API
+- [x] 验证 Rust、插件协议与 SDK、CLI 包及文档类型与无构建测试
+- [x] 创建第二份独立 changeset，验证发布计划并提交
+
 ### Changeset 与版本规则
 
 - [x] 为 changeset 解析、序列化和清理建立测试

@@ -1,7 +1,7 @@
 use core::fmt;
 use std::path::{Path, PathBuf};
 
-use saphyr::{LoadableYamlNode, Mapping, Yaml, YamlEmitter};
+use saphyr::{LoadableYamlNode, Mapping, Scalar, Yaml, YamlEmitter};
 use serde::{Deserialize, Serialize};
 
 use crate::{config::Config, error::ResolveError};
@@ -228,8 +228,8 @@ impl Changeset {
             };
 
             fm_map.insert(
-                Yaml::value_from_str(&package.name),
-                Yaml::scalar_from_string(mark),
+                Yaml::Value(Scalar::String(package.name.as_str().into())),
+                Yaml::Value(Scalar::String(mark.into())),
             );
         }
         emitter

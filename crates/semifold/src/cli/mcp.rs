@@ -12,7 +12,7 @@ use rmcp::{
     ServerHandler, ServiceExt,
     handler::server::common::schema_for_input,
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{CallToolResult, ContentBlock, JsonObject, ServerCapabilities, ServerInfo},
+    model::{CallToolResult, ContentBlock, JsonObject, ServerCapabilities, ServerConfig},
     tool, tool_handler, tool_router,
 };
 use rust_i18n::t;
@@ -387,8 +387,8 @@ impl SemifoldMcp {
 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for SemifoldMcp {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(rmcp::model::Implementation::new(
                 "semifold",
                 env!("CARGO_PKG_VERSION"),

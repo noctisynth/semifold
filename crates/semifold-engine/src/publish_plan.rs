@@ -406,7 +406,10 @@ fn render_template(template: &str, publish: &PublishContext) -> Result<String, P
     let mut environment = Environment::new();
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
     environment
-        .render_str(template, context!(package => &publish.package))
+        .render_str(
+            template,
+            context!(package => minijinja::value::Serde(&publish.package)),
+        )
         .map_err(PublishPlanError::Template)
 }
 

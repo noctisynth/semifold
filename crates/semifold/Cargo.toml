@@ -1,6 +1,6 @@
 [package]
 name = "semifold"
-version = "0.3.4"
+version = "0.3.5"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
@@ -41,10 +41,10 @@ rust-embed = "8.13.0"
 rust-i18n = "4.2.4"
 saphyr = "0.3.3"
 schemars = "1.2.3"
-semifold-changelog = { path = "../changelog", version = "0.3.2" }
-semifold-core = { version = "0.1.1", path = "../semifold-core" }
-semifold-engine = { version = "0.2.4", path = "../semifold-engine" }
-semifold-resolver = { path = "../resolver", version = "0.4.2", features = [
+semifold-changelog = { path = "../changelog", version = "0.4.0" }
+semifold-core = { version = "0.1.2", path = "../semifold-core" }
+semifold-engine = { version = "0.3.0", path = "../semifold-engine" }
+semifold-resolver = { path = "../resolver", version = "0.4.3", features = [
   "clap",
 ] }
 semver = "1.0.28"

@@ -1,6 +1,6 @@
 {
   "name": "@semifold/plugin-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TypeScript protocol types and helpers for Semifold ecosystem plugins",
   "type": "module",
   "sideEffects": false,

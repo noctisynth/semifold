@@ -1,0 +1,14 @@
+---
+title: Review the release plan
+description: Inspect target versions, changeset effects, and propagation.
+skillTask: status
+skillCommands: [status]
+---
+
+Run `smif status` to calculate the release plan from the repository configuration and pending changesets. The result includes current and target versions, directly requested bumps, dependency or shared-version propagation, warnings, and a plan fingerprint.
+
+Status displays the plan without saving it or changing manifests, changelogs, configuration, or changesets. To adjust the plan, update the relevant changesets or dependency configuration and run status again.
+
+`status --comment` writes the plan to a GitHub pull-request comment in the supported CI environment. Global dry run skips the comment write. A comment-write failure is reported as a warning while retaining the computed plan; other GitHub query failures can stop the command.
+
+See [release status](https://semifold.noctisynth.org/docs/commands/status/) for CI requirements and diagnostics.

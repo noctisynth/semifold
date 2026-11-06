@@ -1,0 +1,20 @@
+---
+title: Record a changeset
+description: Record affected packages, version intent, and a summary for a change.
+skillTask: changeset
+skillCommands: [commit, status]
+---
+
+Read the code diff and repository changeset policy. Select the configured package IDs and their `patch`, `minor`, or `major` bumps. Tags select changelog categories; release channels are configured separately.
+
+Create a changeset for the change, using the grouping required by the repository. Non-interactive execution requires a file name, packages and bump levels, a configured tag or `--no-tag`, and a nonempty summary.
+
+Replace the example package and summary with the actual change:
+
+```bash
+smif commit --name fix-parser --package core=patch --no-tag --summary "Fix parser handling of empty input."
+```
+
+The command creates a changeset file and leaves package versions unchanged. If the name already exists, choose another name. Run `smif status` to check affected packages, target versions, and dependency or shared-version propagation. Review the changeset and include it with the corresponding code change.
+
+See [changesets](https://semifold.noctisynth.org/docs/commands/commit/) and [release status](https://semifold.noctisynth.org/docs/commands/status/).

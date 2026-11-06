@@ -1,30 +1,40 @@
 ---
 title: Using Semifold with agents
-description: Find focused Markdown documentation and a portable Semifold skill for release tasks.
+description: Install the Semifold skill and read task guidance from your installed CLI.
 ---
 
-Agents can read the same maintained content as this website through the [documentation index](/llms.txt), the [Chinese index](/zh/llms.txt), or [complete bilingual text](/llms-full.txt). The indexes link directly to individual Markdown pages so an agent can load only what the task needs. Each documentation page advertises its Markdown version with an HTML alternate link.
+The Semifold skill lets an agent discover release tasks and read instructions from your installed CLI. Task guidance is available offline and stays aligned with the CLI version.
 
-## Get the Semifold skill
+## Install the skill
 
-The repository distributes [skills/semifold](https://github.com/noctisynth/semifold/tree/main/skills/semifold) in the [Agent Skills format](https://agentskills.io/specification). Copy the whole `semifold` folder, including `references/`, into the skills location supported by your agent client, or use that client's repository skill installer with repository `noctisynth/semifold` and path `skills/semifold`. Installation and discovery locations depend on the client; this repository does not install it globally.
+Export the skill into a new directory:
 
-The skill routes changeset creation, configuration maintenance, release review, and release troubleshooting to the existing command documentation. It preserves your repository instructions and the scope you authorize. `AGENTS.md` at the Semifold repository root instead guides agents contributing to Semifold itself.
+```sh
+smif skill export --output ./semifold
+```
 
-## Before a task
+The command creates a directory containing `SKILL.md`. Place that directory in the skills location supported by your agent client. The parent directory must already exist.
 
-Run `smif --version` and `smif <command> --help`. Read the target repository's `.changes/config.toml` and workflow; use exact configured package IDs and tags. For older versions, installed help takes precedence over examples using newer flags. Do not infer an installed version from the website's current documentation.
+You can also install [skills/semifold](https://github.com/noctisynth/semifold/tree/main/skills/semifold) through your client's repository skill installer, using repository `noctisynth/semifold` and path `skills/semifold`. The skill uses the [Agent Skills format](https://agentskills.io/specification).
 
-## Task checkpoints
+## Use task guidance
 
-| Task | Prerequisites and operation | Expected result and side effects | Recovery reference |
-| --- | --- | --- | --- |
-| Record a change | Configured package IDs; `smif commit` with complete explicit arguments when non-interactive | One new changeset; versions unchanged. Review `smif status` next. | [Changesets](/docs/commands/commit/) |
-| Review release intent | Valid configuration and changesets; `smif status` | Package/version plan and propagation reasons; no package file writes. `--comment` adds a GitHub write. | [Status](/docs/commands/status/) |
-| Maintain configuration | Existing project; `smif config sync --check` | Reports drift; applying `config sync` can update configuration. | [Configuration](/docs/commands/config/) |
-| Prepare versions | Choose manual or CI workflow; inspect hooks | Version/changelog edits and changeset consumption; hook failure can leave partial applied state. | [Version](/docs/commands/version/) |
-| Publish | Prepared versions, credentials, and explicit release scope | Registry and optional GitHub mutations; partial progress is reported. | [Publish](/docs/commands/publish/) |
+1. Run `smif skill list` to list the available tasks.
+2. Run `smif skill get <task>` to read a task's instructions.
+3. Use the returned `data.commands` to find command help, then follow `data.instructions`.
 
-`--dry-run` can execute configured commands explicitly enabled for dry run, and publish preflight can access registries. Inspect hooks and respect network or local build constraints before describing a preview as harmless.
+For example:
 
-With generated GitHub Actions, follow [CI](/docs/commands/ci/) and avoid duplicate local version or publish runs for the same release.
+```sh
+smif skill get release --language en
+```
+
+Use `--language zh` for Chinese guidance. Without this option, Chinese system locales select Chinese; other locales select English. The [skill command reference](/docs/commands/skill/) describes the JSON response.
+
+Use the same executable for guidance and execution. After upgrading or switching executables, read the task list and instructions again. The installed skill entry point can be reused across CLI upgrades that support the same discovery protocol.
+
+## Browse the guides
+
+The task guides cover [initialization](/docs/agent-tasks/init/), [configuration](/docs/agent-tasks/config/), [changesets](/docs/agent-tasks/changeset/), [release inspection](/docs/agent-tasks/status/), and [release workflows](/docs/agent-tasks/release/), with [common preparation and verification steps](/docs/agent-tasks/shared/).
+
+For Markdown product documentation, use the [English index](/llms.txt), [Chinese index](/zh/llms.txt), or [complete bilingual text](/llms-full.txt). Each documentation page also links to its Markdown version.

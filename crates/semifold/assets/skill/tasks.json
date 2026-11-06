@@ -1,0 +1,39 @@
+[
+  {
+    "task": "changeset",
+    "commands": [
+      "commit",
+      "status"
+    ]
+  },
+  {
+    "task": "config",
+    "commands": [
+      "config sync",
+      "config migrate",
+      "config channel set",
+      "config channel clear"
+    ]
+  },
+  {
+    "task": "init",
+    "commands": [
+      "init"
+    ]
+  },
+  {
+    "task": "release",
+    "commands": [
+      "status",
+      "version",
+      "publish",
+      "ci"
+    ]
+  },
+  {
+    "task": "status",
+    "commands": [
+      "status"
+    ]
+  }
+]

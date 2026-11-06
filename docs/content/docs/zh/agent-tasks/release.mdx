@@ -1,0 +1,36 @@
+---
+title: 准备与执行发布
+description: 使用 GitHub Actions 或手动流程发布，并从部分失败中恢复。
+skillTask: release
+skillCommands: [status, version, publish, ci]
+---
+
+## GitHub Actions
+
+使用生成的 GitHub Actions 工作流时：
+
+1. 创建变更集，并用 `smif status` 检查计划。
+2. 将改动合并到配置的基础分支。`smif ci` 准备并维护发布 PR。
+3. 检查并合并发布 PR，由 CI 发布已准备的版本。
+
+此流程在 CI 中完成版本更新和发布。`ci` 只在 GitHub Actions 中运行，并跳过配置基础分支之外的分支。有待处理变更集时准备发布 PR，没有待处理变更集时执行发布。渲染后的发布分支必须不同于基础分支。
+
+## 手动发布
+
+使用手动发布工作流时：
+
+1. 检查配置的 hook、pre-check 和工作区差异。
+2. 预览 `smif version --dry-run`，再运行 `smif version`。该操作更新包版本、适用的内部依赖约束和变更日志，并消费变更集。
+3. 检查生成的差异，运行仓库检查，并提交版本改动。
+4. 预览 `smif publish --dry-run`，再运行 `smif publish`。
+
+`--allow-dirty` 将现有工作区改动纳入操作。明确允许 dry run 的配置命令可在预览中执行，发布预检也可能访问软件包仓库。
+
+## 恢复失败的发布
+
+- 版本准备期间的计划或校验失败会保留原有包文件和变更集。post-version hook 失败可能留下已应用的改动和保留的变更集。检查差异、修复 hook，再按报告的恢复步骤重试。
+- 发布使用版本文件和变更日志。检查各包的 `succeeded`、`failed`、`skipped` 或 `not-started` 状态及失败阶段。软件包仓库中已存在的版本会跳过发布。启用 GitHub Release 时仍可创建缺失的 Release；已有 Release 不会在重试时自动补传缺失附件。
+- CI 失败时，检查报告中的准备、推送或发布 PR 阶段，以及对应文件或远端结果，再重试。
+- status 评论写入和 changelog 元数据失败可能报告警告；发布 PR 操作和发布失败会停止对应操作。
+
+详细命令行为见[版本更新](https://semifold.noctisynth.org/zh/docs/commands/version/)、[发布](https://semifold.noctisynth.org/zh/docs/commands/publish/)、[CI](https://semifold.noctisynth.org/zh/docs/commands/ci/)和[状态](https://semifold.noctisynth.org/zh/docs/commands/status/)。

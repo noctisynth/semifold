@@ -24,6 +24,9 @@ smif [OPTIONS] <COMMAND>
 | `publish` | `smif publish [OPTIONS]` | [Publish execution](/docs/commands/publish/) |
 | `ci` | `smif ci [OPTIONS]` | [GitHub Actions orchestration](/docs/commands/ci/) |
 | `mcp` | `smif mcp [OPTIONS]` | [MCP server](/docs/commands/mcp/) |
+| `skill list` | `smif skill [OPTIONS] list` | [Agent task instructions](/docs/commands/skill/) |
+| `skill get` | `smif skill [OPTIONS] get <TASK>` | [Agent task instructions](/docs/commands/skill/) |
+| `skill export` | `smif skill [OPTIONS] export --output <DIR>` | [Agent task instructions](/docs/commands/skill/) |
 
 ## Global options
 
@@ -58,3 +61,7 @@ smif [OPTIONS] <COMMAND>
 - `publish`: `--github-release`, `--allow-dirty`;
 - `ci`: no command-specific options;
 - `mcp`: `-C`, `--project-root` (alias `--cd`).
+
+### `skill`
+
+`--language en|zh` applies throughout the `skill` subcommand tree. `get` takes positional `TASK`; `export` requires `--output <DIR>`. The global `--dry-run` prevents export writes. All successful subcommands return JSON; `list` and `get` work without a repository or project configuration.

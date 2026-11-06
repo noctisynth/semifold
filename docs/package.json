@@ -10,7 +10,8 @@
     "preview": "serve out --listen 4173",
     "test:install": "node --test scripts/install.test.mjs",
     "typecheck": "bun run generate && tsc --noEmit",
-    "test:agents": "bun test scripts/agent-docs.test.mjs"
+    "test:agents": "bun test scripts/agent-docs.test.mjs scripts/skill-generation.test.mjs && bun scripts/generate-skill.mjs --check",
+    "generate:skill": "bun scripts/generate-skill.mjs"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.4",

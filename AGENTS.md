@@ -53,6 +53,7 @@ PRD 是需求、架构和设计的技术事实来源。开始任何实现前，�
 
 - 文档站设计：[docs/prd/documentation-redesign.md](docs/prd/documentation-redesign.md)。
 - 双语正文只维护 `docs/content/docs/en` 与 `docs/content/docs/zh`；网页、Agent 索引和逐页 Markdown 从同一源生成。不要编辑旧 `docs/docs` 作为生产内容。
-- `skills/semifold/SKILL.md` 面向使用 Semifold 的 Agent，引用产品文档；此文件面向修改 Semifold 仓库的 Agent。
-- 无构建验证：在 `docs/` 运行 `bun test scripts/agent-docs.test.mjs` 与 `bun scripts/check-locales.mjs`。
+- `skills/semifold/SKILL.md` 面向使用 Semifold 的 Agent，只保留本地 `skill list/get` 发现入口；此文件面向修改 Semifold 仓库的 Agent。
+- 版本相关任务指南只编辑 `docs/content/docs/{en,zh}/agent-tasks/*.mdx`；在 `docs/` 运行 `bun run generate:skill`，提交同步生成的 crate assets 和 en/zh locale 标记区块，不手改生成内容。
+- 无构建验证：在 `docs/` 运行 `bun run test:agents` 与 `bun scripts/check-locales.mjs`，覆盖文档投影、Skill 入口和生成漂移。
 - 完整站点验证：`bun run docs:check` 包含静态构建，仅在用户允许本地构建时运行，否则交由 CI。

@@ -683,6 +683,13 @@
 
 ## Agent 文档入口
 
+### 随 CLI 版本提供任务指南
+
+- [x] 实现项目加载前的 `skill list/get/export` 与协议版本、CLI 版本、语言元数据。
+- [x] 将任务指引迁至双语 MDX 单源，生成 crate 内嵌资源和 i18n 文案，建立漂移校验。
+- [x] 将分发 Skill 缩减为单文件发现入口，同步双语安装、命令和开发说明。
+- [x] 验证离线/无仓库/坏配置读取、任务路由、双语、导出保护、dry-run 和独立 changeset；94 项 Rust 测试、12 项 Bun 测试、Clippy、文档类型检查及 locale parity 通过，完整站点构建交由 CI。
+
 - [x] 实现同源分语言索引、逐页 Markdown 路由与 HTML alternate，投影逻辑测试通过；静态导出另行验收。
 - [x] 完成双语 Agent 指南、Semifold Skill 和仓库贡献入口。
 - [x] Bun 测试验证格式化逻辑、Skill frontmatter、引用和 locale parity；使用已安装的 `smif status` 验证独立 changeset，未编译 Rust。

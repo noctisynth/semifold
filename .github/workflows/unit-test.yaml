@@ -34,6 +34,11 @@ jobs:
         run: bun run --filter @semifold/plugin-sdk test
       - name: Check npm CLI packages
         run: bun run --filter @semifold/cli check
+      - name: Check agent documentation and embedded skill resources
+        working-directory: docs
+        run: |
+          bun run test:agents
+          bun scripts/check-locales.mjs
       - name: Build
         run: cargo build --workspace
       - name: Build and smoke test N-API CLI

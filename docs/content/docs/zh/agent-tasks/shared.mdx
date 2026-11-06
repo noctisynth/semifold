@@ -1,0 +1,16 @@
+---
+title: 准备与验证任务
+description: 读取项目设置、确认操作影响并验证结果。
+skillTask: shared
+skillCommands: []
+---
+
+使用提供本指南的已安装 `smif` 或 `semifold` 可执行文件，通过相关命令的 `--help` 查询精确参数。升级或切换可执行文件后重新读取指南。
+
+读取仓库规则、Git diff、变更集配置和发布工作流。默认配置位于 `.changes/config.toml`。package 参数使用 `[packages]` 中的键名，tag 使用配置中的标签名称。
+
+按仓库发布工作流和任务范围执行。预览 version 或 publish 前，检查 hook 和配置命令。`--dry-run` 跳过 Semifold 管理的修改；明确允许 dry run 的配置命令仍可执行。发布预检可能访问软件包仓库并运行配置的 pre-check。
+
+修改后检查 Git diff，并运行仓库相关检查，报告受影响的包和执行结果。操作失败时，根据报告的失败阶段和部分结果，选择任务指南中的恢复步骤。
+
+更多命令细节见[命令参考](https://semifold.noctisynth.org/zh/docs/commands/reference/)或[文档索引](https://semifold.noctisynth.org/zh/llms.txt)。

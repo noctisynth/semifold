@@ -1,0 +1,56 @@
+---
+title: Read agent task instructions
+description: List tasks, read guidance for the installed CLI version, and export the Semifold skill.
+---
+
+`smif skill` provides offline task guidance for the installed CLI version. It works in any directory, including projects that have not been initialized or have invalid configuration.
+
+```sh
+smif skill list
+smif skill get release
+smif skill get release --language zh
+smif skill export --output ./semifold
+```
+
+## List and read tasks
+
+`list` returns the available task IDs and summaries. `get <task>` returns the selected task's instructions and related command paths. Use `smif <command> --help` for exact command arguments.
+
+The current guides cover [initialization](/docs/agent-tasks/init/), [configuration](/docs/agent-tasks/config/), [changesets](/docs/agent-tasks/changeset/), [release inspection](/docs/agent-tasks/status/), and [release workflows](/docs/agent-tasks/release/). Task IDs are listed by the installed executable.
+
+`--language en` and `--language zh` select the content language. The option can appear before or after the subcommand. By default, Chinese system locales select `zh`; other locales select `en`. Both languages export the same skill entry point.
+
+Use the same executable for guidance and execution, and refresh the instructions after upgrading or switching executables. An unknown task returns an error; `list` shows the available tasks.
+
+## JSON output
+
+Successful `list`, `get`, and `export` commands write one JSON object to stdout:
+
+| Field | Meaning |
+| --- | --- |
+| `protocolVersion` | Discovery protocol version, currently `1`. |
+| `cliVersion` | Version of the executable producing the response. |
+| `language` | Content language: `en` or `zh`. |
+| `data` | Result specific to the subcommand. |
+
+| Subcommand | `data` |
+| --- | --- |
+| `list` | An array of objects with `task` and localized `summary`. |
+| `get` | An object with `task`, `commands`, and localized `instructions`. |
+| `export` | An object with `output`, `files: ["SKILL.md"]`, and `written`. |
+
+`commands` contains command path strings such as `config sync`, usable with `smif config sync --help`. `instructions` contains Markdown with common preparation steps followed by the task guide. Failures are reported on stderr with a nonzero exit code.
+
+## Export the skill
+
+`export --output <dir>` creates a new directory containing only `SKILL.md`. Its parent directory must already exist. Place the exported directory in the skills location supported by your agent client.
+
+Existing targets, including symbolic links, are rejected. The input path and its resolved form must be valid Unicode. Parent-directory links are resolved, and `data.output` contains the resulting absolute path.
+
+```sh
+smif --dry-run skill export --output ./semifold
+```
+
+With `--dry-run`, the command validates the destination and returns `written: false` without writing files. Normal export returns `written: true`. A failed write can leave a partial export; inspect the output directory and choose a new directory to retry.
+
+See [Using Semifold with agents](/docs/agents/) for installation and task discovery.

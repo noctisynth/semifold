@@ -2871,5 +2871,7 @@ Semifold 的中心抽象不应继续是同时解析、排序、写文件和发�
 ### Agent 文档入口与技能分发
 
 产品文档继续以 `docs/content/docs/{en,zh}` 的 MDX 为唯一正文来源；Agent 阅读入口、逐页 Markdown
-和 Semifold 使用 Skill 的设计委托 `documentation-redesign.md` 第 18 节。不改变 CLI、发布模型或 MCP
-工具协议，不为静态文档新增 MCP 服务。仓库贡献规则与面向使用者的 Skill 分开维护。
+和 Semifold 使用 Skill 的设计委托 `documentation-redesign.md` 第 18 节。CLI 增加离线
+`skill list/get/export` 发现协议，由当前二进制提供与其版本一致的任务指南；独立 Skill 只保留稳定入口。
+此能力属于 CLI 展示层，在项目发现和配置加载之前执行，不改变领域发布模型或 MCP 工具协议，
+不为静态文档新增 MCP 服务。仓库贡献规则与面向使用者的 Skill 分开维护。

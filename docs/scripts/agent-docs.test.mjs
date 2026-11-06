@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { markdownPath, renderIndex, renderMarkdown } from '../lib/agent-docs.ts';
 
@@ -57,28 +57,14 @@ describe('agent documentation projections', () => {
   });
 });
 
-test('distributed skill has valid discovery metadata and a complete reference bundle', () => {
+test('distributed skill has valid discovery metadata and is a self-contained entrypoint', () => {
   const root = resolve(import.meta.dir, '../../skills/semifold');
   const skill = readFileSync(resolve(root, 'SKILL.md'), 'utf8');
   const frontmatter = Bun.YAML.parse(skill.split('---')[1]);
   expect(frontmatter.name).toBe('semifold');
   expect(frontmatter.description.length).toBeGreaterThan(0);
   expect(frontmatter.description.length).toBeLessThanOrEqual(1024);
-  const references = [...skill.matchAll(/\]\((references\/[^)]+)\)/g)];
-  expect(references.length).toBeGreaterThan(0);
-  for (const reference of references) {
-    expect(existsSync(resolve(root, reference[1]))).toBe(true);
-  }
+  expect([...skill.matchAll(/\]\((references\/[^)]+)\)/g)]).toHaveLength(0);
+  expect(readdirSync(root)).toEqual(['SKILL.md']);
   expect(skill).not.toContain('[TODO:');
-});
-
-
-test('skill product references resolve to maintained documentation in both languages', () => {
-  const root = resolve(import.meta.dir, '../..');
-  for (const path of ['skills/semifold/SKILL.md', 'skills/semifold/references/release-workflow.md']) {
-    const body = readFileSync(resolve(root, path), 'utf8');
-    for (const [, locale, slug] of body.matchAll(/https:\/\/semifold\.noctisynth\.org\/(zh\/)?docs\/([^\s)]+)\//g)) {
-      expect(existsSync(resolve(root, `docs/content/docs/${locale ? 'zh' : 'en'}/${slug}.mdx`))).toBe(true);
-    }
-  }
 });

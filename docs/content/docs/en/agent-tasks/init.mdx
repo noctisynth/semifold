@@ -1,0 +1,16 @@
+---
+title: Adopt Semifold in a repository
+description: Initialize package discovery, changeset configuration, and optional GitHub Actions.
+skillTask: init
+skillCommands: [init]
+---
+
+Run `smif init` from the repository root to create a new Semifold configuration. For an existing project, use `smif config sync` to update package discovery. `init --force` replaces the configuration.
+
+For non-interactive initialization, specify the ecosystems, base and release branches, default tags or no tags, and GitHub Actions or no GitHub Actions. `init --help` lists the corresponding options. Required choices must be supplied as arguments when prompts are unavailable.
+
+The rendered release branch must differ from the base branch. CI maintains the release branch for the release pull request.
+
+Use `--dry-run` to preview initialization. After applying it, review the changeset configuration, discovered `[packages]` IDs and paths, resolver defaults, and generated GitHub Actions files.
+
+See [initialization](https://semifold.noctisynth.org/docs/commands/init/) for supported choices and generated files.

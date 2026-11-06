@@ -1,0 +1,16 @@
+---
+title: 维护 Semifold 配置
+description: 同步包、迁移支持的旧字段或管理发布通道。
+skillTask: config
+skillCommands: [config sync, config migrate, config channel set, config channel clear]
+---
+
+根据配置变更选择操作：
+
+- 新增、移动、重命名或移除包时，运行 `smif config sync --check`，再用 `smif config sync` 应用更新。移除缺失的包需要 `--prune`，并且发现扫描必须完整成功。应用前先处理命令报告的冲突。
+- 迁移支持的旧 TOML 字段时，运行 `smif config migrate --check`，再执行 `smif config migrate`。迁移可在配置通过严格项目校验之前运行。JSON 配置需要另外转换。
+- 管理发布通道时，使用 `config channel set` 或 `config channel clear`，通过配置中的包 ID 或 `--all` 选择范围。检查一次性的基线升级设置；成功的 version 操作会消费该设置。Node.js 包的 npm dist-tag 与通道不匹配时会报告警告，通过发布命令配置匹配的标签即可。
+
+`--check` 检查已保存配置，与请求状态存在差异时返回失败。`--dry-run` 预览变更，不写入配置。应用更新后检查 Git diff，并重新运行对应检查。
+
+选项和示例见[配置命令](https://semifold.noctisynth.org/zh/docs/commands/config/)。

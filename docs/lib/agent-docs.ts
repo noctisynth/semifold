@@ -26,7 +26,7 @@ export function renderIndex(pages: AgentPage[], locale: 'en' | 'zh'): string {
   const lines = [
     chinese ? '# Semifold 中文文档' : '# Semifold documentation', '',
     chinese ? '> 跨语言单仓库的版本、变更日志与发布管理。' : '> Version, changelog, and release management for cross-language monorepos.', '',
-    chinese ? '按任务读取以下 Markdown 文档。先运行 smif --version，并用已安装版本的 --help 核对参数。' : 'Read the Markdown pages relevant to your task. Check smif --version and the installed command’s --help before choosing flags.', '',
+    chinese ? '`smif skill list` 列出可用任务，`smif skill get <task>` 返回当前 CLI 版本的任务指南。以下为产品文档的 Markdown 页面。' : '`smif skill list` lists available tasks; `smif skill get <task>` returns guidance for the installed CLI version. The Markdown pages below provide product documentation.', '',
   ];
   const groups = new Map<string, AgentPage[]>();
   for (const page of pages.filter((page) => (page.locale ?? 'en') === locale)
@@ -38,6 +38,7 @@ export function renderIndex(pages: AgentPage[], locale: 'en' | 'zh'): string {
   }
   const labels: Record<string, [string, string]> = {
     overview: ['Overview', '概览'], 'getting-started': ['Getting started', '开始使用'],
+    'agent-tasks': ['Agent task guides', 'Agent 任务指南'],
     commands: ['Commands', '命令'], configuration: ['Configuration', '配置'],
     workspace: ['Workspaces', '工作区'], concepts: ['Concepts', '概念'], plugins: ['Plugins', '插件'],
   };

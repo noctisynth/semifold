@@ -1,0 +1,16 @@
+---
+title: Maintain Semifold configuration
+description: Synchronize packages, migrate supported legacy fields, or manage release channels.
+skillTask: config
+skillCommands: [config sync, config migrate, config channel set, config channel clear]
+---
+
+Choose the operation for the configuration change:
+
+- For package additions, moves, renames, or removals, run `smif config sync --check`, then apply updates with `smif config sync`. Removing missing packages requires `--prune` and a complete successful discovery scan. Resolve reported conflicts before applying the update.
+- For supported legacy TOML fields, run `smif config migrate --check`, then `smif config migrate`. Migration can run before the configuration passes strict project validation. JSON configuration requires conversion separately.
+- For release channels, use `config channel set` or `config channel clear` with configured package IDs or `--all`. Review any one-time baseline bump; a successful version operation consumes it. For Node.js packages, a mismatched npm dist-tag is reported as a warning; update the publish command to match the channel.
+
+`--check` verifies the saved configuration and fails when it differs from the requested state. `--dry-run` previews changes without writing configuration. After applying an update, review the Git diff and rerun the corresponding check.
+
+See [configuration commands](https://semifold.noctisynth.org/docs/commands/config/) for options and examples.

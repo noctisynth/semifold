@@ -12,6 +12,7 @@ pub(crate) mod github;
 pub mod init;
 pub mod mcp;
 pub mod publish;
+pub(crate) mod skill;
 pub mod status;
 pub(crate) mod terminal;
 pub mod version;
@@ -61,6 +62,8 @@ pub(crate) enum Commands {
     Status(status::Status),
     #[command(about = t!("cli.commands.mcp"))]
     Mcp(mcp::McpCommand),
+    #[command(about = t!("cli.commands.skill"))]
+    Skill(skill::Skill),
 }
 
 fn get_styles() -> clap::builder::Styles {

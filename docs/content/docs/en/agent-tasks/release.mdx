@@ -1,0 +1,36 @@
+---
+title: Prepare and publish a release
+description: Release through GitHub Actions or a manual workflow, and recover from partial failures.
+skillTask: release
+skillCommands: [status, version, publish, ci]
+---
+
+## GitHub Actions
+
+For repositories using the generated GitHub Actions workflow:
+
+1. Create a changeset and check the plan with `smif status`.
+2. Merge the change into the configured base branch. `smif ci` prepares and maintains the release pull request.
+3. Review and merge the release pull request. CI publishes the prepared versions.
+
+This workflow handles versioning and publishing in CI. `ci` runs only in GitHub Actions and skips branches other than the configured base branch. Pending changesets select release pull request preparation; no pending changesets select publishing. The rendered release branch must differ from the base branch.
+
+## Manual release
+
+For repositories using a manual release workflow:
+
+1. Check configured hooks, pre-checks, and the worktree diff.
+2. Preview `smif version --dry-run`, then run `smif version`. This updates package versions, eligible internal requirements, and changelogs, and consumes changesets.
+3. Review the generated diff, run repository checks, and commit the version changes.
+4. Preview `smif publish --dry-run`, then run `smif publish`.
+
+`--allow-dirty` includes existing worktree changes in the operation. Dry-run-enabled configured commands can execute during previews, and publish preflight can access registries.
+
+## Recover a failed release
+
+- A planning or validation failure during version preparation leaves package files and changesets unchanged. A post-version hook failure can leave applied edits and retained changesets. Review the diff, fix the hook, and follow the reported recovery steps before retrying.
+- Publishing uses versioned manifests and changelogs. Check each package's `succeeded`, `failed`, `skipped`, or `not-started` status and its failed stage. Existing registry versions skip registry publishing. With GitHub Releases enabled, a missing Release may still be created; existing Releases do not receive missing assets automatically on retry.
+- For a CI failure, check the reported preparation, push, or release pull request stage and the corresponding files or remote results before retrying.
+- Status comment-write and changelog metadata failures can be warnings. Release pull request and publishing failures stop the corresponding operation.
+
+See [versioning](https://semifold.noctisynth.org/docs/commands/version/), [publishing](https://semifold.noctisynth.org/docs/commands/publish/), [CI](https://semifold.noctisynth.org/docs/commands/ci/), and [status](https://semifold.noctisynth.org/docs/commands/status/) for detailed command behavior.

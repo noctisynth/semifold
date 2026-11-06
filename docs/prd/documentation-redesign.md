@@ -567,18 +567,46 @@ CI 中 docs job 与 Rust tests 分离，避免文档依赖安装拖慢纯 Rust �
 
 ## 18. Agent 文档与 Skill
 
+- 公开页面直接面向开发者，说明命令用途、操作步骤、返回结果和必要的失败恢复。任务指南同样使用
+  简洁的操作说明；不把内部实现取舍、审查推断、假设性风险或泛化的防御性告诫写入用户正文。
+  保留影响使用结果的事实，例如 dry-run 执行范围、已有输出目录处理和发布失败后的部分状态。
+
 - `/llms.txt` 保持一个 H1，以英文文档分组索引为主体，并链接 `/zh/llms.txt`、全文和 Skill。
 - `/zh/llms.txt` 单独索引中文内容，禁止 fallback；原 `/llms-full.txt` 保留双语全文兼容行为。
 - `/markdown/{en,zh}/{slug}.md` 从同一 Fumadocs processed Markdown 生成，根文档为 `index.md`；
   保留标题、描述、原始网页 URL 和语言，正文内部相对链接解析为原网页对应的绝对 URL。
 - 网页 metadata 提供 `alternate` / `text/markdown` 链接；索引直接链接 Markdown，按现有任务模块分组。
 - 增加双语 Agent 使用说明，说明入口、版本适配、Skill 获取和操作的前置条件、输出、副作用及恢复路径。
-- 仓库分发 `skills/semifold/SKILL.md`，元数据满足 Agent Skills 格式；正文仅保留流程选择、
-  PackageId、非交互参数、dry-run 例外和发布恢复等决策规则，详细说明引用既有公开文档。
-  一个按需读取的 release workflow reference 负责流程分流，不复制 CLI 参数参考。
+- 仓库分发 `skills/semifold/SKILL.md`，元数据满足 Agent Skills 格式；正文仅保留适用范围、
+  本地 CLI 前置条件、`skill list` → `skill get <task>` 发现协议、同一可执行文件执行和授权边界。
+  不固定任务 ID、业务 flags 或版本相关恢复规则；版本/可执行文件变化时刷新指引，发现协议不支持时
+  报告兼容性问题，不猜测任务或使用其他版本指引。安装包只有该文件，不再依赖旁边的 references。
+- CLI 提供 `smif skill list`、`smif skill get <task>` 和 `smif skill export --output <dir>`。
+  `skill --language en|zh` 可显式选择内容语言，省略时将系统中文 locale 归一为 zh，其余为 en。
+  成功 stdout 为单个 JSON 对象：`protocolVersion: 1`、`cliVersion`、`language`、`data`。
+  list 的 data 是 `{task, summary}` 数组；get 是 `{task, commands, instructions}`，其中 commands
+  是可用于 `<command> --help` 的命令路径字符串，instructions 合并共享规则与所选任务指南。
+  export 的 data 是 `{output, files: ["SKILL.md"], written}`；dry-run 时 written 为 false。
+  错误沿用 CLI stderr 和非零退出码，stdout 不混入 banner、终端样式或状态提示。
+  发现协议的基础字段和调用形态保持兼容，业务任务列表通过 list 动态发现，不承诺永久固定。
+- list/get 在项目发现之前执行，离线、无配置 I/O、无 hook、无需 Git 或初始化；export 仅写显式输出
+  目录，不自动安装客户端技能、不覆盖已有路径（包括悬空符号链接）。父目录必须存在，可通过链接
+  解析为规范绝对路径，输入及解析结果必须是有效 Unicode；output 返回解析后的绝对路径。
+  写入失败保留已创建目录和可能部分写入的文件，供检查后选择新目录重试，不递归清理或删除可能被
+  并发替换的内容。全局 dry-run 不写文件。命令参数细节继续由已安装版本的 --help 提供，不新增独立 schema 子系统。
+- 双语 `docs/content/docs/{en,zh}/agent-tasks/*.mdx` 是任务指南唯一手写来源；初始覆盖 init、config、
+  changeset、status、release 与共享规则，元数据声明任务 ID、相关命令，description 提供任务摘要。
+  维护脚本生成 crate 内的任务索引、最小 Skill 副本，以及 en/zh locale 文件的标记生成区块；
+  指南正文和摘要同样通过 `t!` 读取，不在 Rust 中硬编码用户文案。生成产物提交并随 crate 发布，
+  Cargo 构建直接读取产物，locale 文件显式纳入生产库编译依赖，正文修改后增量构建必须更新内嵌翻译。
+  构建不启动文档站或依赖 Bun；运行时不读取网站或新版本源码。
+  生成器拒绝双语任务/命令不一致和不支持的 MDX 内容，检查模式只报漂移、不修改产物。
 - `AGENTS.md` 增加文档源与 Skill 的职责、开发验证入口，不把使用者的 Skill 作为仓库贡献规则。
 - 使用纯格式化函数隔离路由依赖；测试覆盖单 H1、语言隔离、Markdown URL 映射、正文/链接保留；
   静态产物检查覆盖索引中的全部 Markdown 链接、双语路由与 HTML alternate。Skill 校验检查
-  frontmatter、相对引用和未完成占位符。用户禁止本地编译时仅执行脚本测试和静态校验，构建验证待 CI。
+  frontmatter、单文件分发、任务生成漂移和未完成占位符。CLI 测试覆盖无仓库/坏配置读取、两种语言、
+  版本元数据、实际响应与 locale 源正文一致性、未知任务错误、相关命令解析、导出/已有路径保护及
+  dry-run 无写入；导出内容保留内嵌文件原字节，测试兼容 LF 与 CRLF 检出。
+  用户禁止本地编译时仅执行脚本测试和静态校验，构建验证待 CI。
 
 - Bun 专用测试采用 `scripts/*.test.mjs`，通过 `bun test` 执行；不混入 Next 应用的 TypeScript 类型环境，不为测试全局声明扩大生产类型范围。

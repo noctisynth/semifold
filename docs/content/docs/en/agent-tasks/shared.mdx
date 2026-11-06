@@ -1,0 +1,16 @@
+---
+title: Prepare and verify a task
+description: Read project settings, check operation effects, and verify the result.
+skillTask: shared
+skillCommands: []
+---
+
+Use the installed `smif` or `semifold` executable that supplied this guide. Run the related command's `--help` for exact arguments. Refresh the guide after upgrading or switching executables.
+
+Read the repository instructions, Git diff, changeset configuration, and release workflow. The default configuration is `.changes/config.toml`. Package arguments use the keys in `[packages]`, and tags use the configured tag names.
+
+Follow the repository's release workflow and the requested task scope. Check hooks and configured commands before previewing version or publish operations. `--dry-run` skips Semifold-managed mutations; configured commands explicitly enabled for dry run can still execute. Publish preflight can access registries and run configured pre-checks.
+
+After changes, review the Git diff and run the repository's relevant checks. Report affected packages and the resulting state. If an operation fails, use its reported stage and partial results to choose the recovery steps in the task guide.
+
+For additional command details, use the [command reference](https://semifold.noctisynth.org/docs/commands/reference/) or the [documentation index](https://semifold.noctisynth.org/llms.txt).

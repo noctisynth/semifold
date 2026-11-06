@@ -15,6 +15,12 @@ use cli::{Cli, Commands};
 
 rust_i18n::i18n!("locales", fallback = "en");
 
+// rust-i18n reads these files without tracking them as incremental build inputs.
+const _: (&str, &str) = (
+    include_str!("../locales/en.toml"),
+    include_str!("../locales/zh.toml"),
+);
+
 pub fn run_cli() -> ExitCode {
     ExitCode::from(run_cli_with_args(std::env::args_os()))
 }
@@ -58,6 +64,10 @@ fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
         return Ok(());
     }
 
+    if let Some(Commands::Skill(skill)) = &cli.command {
+        return cli::skill::run(skill, cli.dry_run);
+    }
+
     let current_dir = std::env::current_dir()?;
     let changeset_dir = std::env::var_os("CHANGESET_PATH").map(std::path::PathBuf::from);
     let location =
@@ -94,7 +104,7 @@ fn run_with_cli(cli: Cli) -> anyhow::Result<()> {
         Some(Commands::Status(status)) => {
             utils::run_async(cli::status::run(status, &project, cli.dry_run))?
         }
-        Some(Commands::Init(_) | Commands::Mcp(_)) | None => {}
+        Some(Commands::Init(_) | Commands::Mcp(_) | Commands::Skill(_)) | None => {}
     }
 
     Ok(())
@@ -156,6 +166,7 @@ fn command_name(command: &Commands) -> &'static str {
         Commands::CI(_) => "ci",
         Commands::Status(_) => "status",
         Commands::Mcp(_) => "mcp",
+        Commands::Skill(_) => "skill",
     }
 }
 

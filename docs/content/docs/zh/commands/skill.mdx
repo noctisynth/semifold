@@ -1,0 +1,56 @@
+---
+title: 读取 Agent 任务指引
+description: 列出任务、读取当前 CLI 版本的指引，并导出 Semifold Skill。
+---
+
+`smif skill` 提供与已安装 CLI 版本一致的离线任务指引。在任意目录中都可使用，包括尚未初始化或配置无效的项目。
+
+```sh
+smif skill list
+smif skill get release
+smif skill get release --language zh
+smif skill export --output ./semifold
+```
+
+## 列出与读取任务
+
+`list` 返回可用的任务 ID 和摘要。`get <task>` 返回所选任务的指引及相关命令路径。精确参数可通过 `smif <command> --help` 查询。
+
+当前指南覆盖[初始化](/zh/docs/agent-tasks/init/)、[配置维护](/zh/docs/agent-tasks/config/)、[变更集](/zh/docs/agent-tasks/changeset/)、[发布计划检查](/zh/docs/agent-tasks/status/)和[发布流程](/zh/docs/agent-tasks/release/)。任务 ID 以已安装可执行文件列出的结果为准。
+
+`--language en` 和 `--language zh` 用于选择内容语言，可放在子命令之前或之后。默认情况下，中文系统 locale 使用 `zh`，其他 locale 使用 `en`。两种语言导出的 Skill 入口相同。
+
+读取指引和执行任务使用同一个可执行文件，升级或切换后重新读取指引。未知任务会返回错误，可用 `list` 查看可用任务。
+
+## JSON 输出
+
+`list`、`get` 和 `export` 成功后，向 stdout 写入一个 JSON 对象：
+
+| 字段 | 含义 |
+| --- | --- |
+| `protocolVersion` | 发现协议版本，目前为 `1`。 |
+| `cliVersion` | 产生响应的可执行文件版本。 |
+| `language` | 内容语言：`en` 或 `zh`。 |
+| `data` | 对应子命令的结果。 |
+
+| 子命令 | `data` |
+| --- | --- |
+| `list` | 对象数组，每项含 `task` 和本地化的 `summary`。 |
+| `get` | 含 `task`、`commands` 和本地化 `instructions` 的对象。 |
+| `export` | 含 `output`、`files: ["SKILL.md"]` 和 `written` 的对象。 |
+
+`commands` 包含命令路径字符串，例如 `config sync`，可用于查询 `smif config sync --help`。`instructions` 是 Markdown 文本，包含通用准备步骤和当前任务指南。失败通过 stderr 和非零退出码报告。
+
+## 导出 Skill
+
+`export --output <dir>` 创建只包含 `SKILL.md` 的新目录，父目录需要已存在。将导出的目录放到 Agent 客户端支持的技能位置即可。
+
+已有目标（包括符号链接）会被拒绝。输入路径及其解析结果需要是有效的 Unicode 文本。父目录路径中的链接会被解析，`data.output` 返回解析后的绝对路径。
+
+```sh
+smif --dry-run skill export --output ./semifold
+```
+
+使用 `--dry-run` 时，命令校验目标并返回 `written: false`，不写入文件。正常导出返回 `written: true`。写入失败可能留下部分导出文件；检查输出目录后，选择新目录重试。
+
+安装和任务发现流程见[与 Agent 一起使用 Semifold](/zh/docs/agents/)。

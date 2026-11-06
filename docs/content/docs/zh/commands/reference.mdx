@@ -24,6 +24,9 @@ smif [OPTIONS] <COMMAND>
 | `publish` | `smif publish [OPTIONS]` | [执行发布](/zh/docs/commands/publish/) |
 | `ci` | `smif ci [OPTIONS]` | [GitHub Actions 编排](/zh/docs/commands/ci/) |
 | `mcp` | `smif mcp [OPTIONS]` | [MCP 服务器](/zh/docs/commands/mcp/) |
+| `skill list` | `smif skill [OPTIONS] list` | [Agent 任务指引](/zh/docs/commands/skill/) |
+| `skill get` | `smif skill [OPTIONS] get <TASK>` | [Agent 任务指引](/zh/docs/commands/skill/) |
+| `skill export` | `smif skill [OPTIONS] export --output <DIR>` | [Agent 任务指引](/zh/docs/commands/skill/) |
 
 ## 全局选项
 
@@ -58,3 +61,7 @@ smif [OPTIONS] <COMMAND>
 - `publish`：`--github-release`、`--allow-dirty`；
 - `ci`：没有专用选项；
 - `mcp`：`-C`、`--project-root`（别名 `--cd`）。
+
+### `skill`
+
+`--language en|zh` 适用于整个 `skill` 子命令树。`get` 接受位置参数 `TASK`；`export` 必须提供 `--output <DIR>`。全局 `--dry-run` 阻止导出写入。所有成功的子命令都返回 JSON；`list` 和 `get` 无需仓库或项目配置。

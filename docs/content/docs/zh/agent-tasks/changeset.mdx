@@ -1,0 +1,20 @@
+---
+title: 记录变更集
+description: 记录改动涉及的包、版本意图和摘要。
+skillTask: changeset
+skillCommands: [commit, status]
+---
+
+读取代码差异和仓库变更集规则，选择配置中的包 ID 及其 `patch`、`minor` 或 `major` 升级级别。tag 用于选择变更日志分类，发布通道另行配置。
+
+按仓库要求的分组方式为改动创建变更集。非交互执行需要提供文件名、包与升级级别、已配置 tag 或 `--no-tag`，以及非空摘要。
+
+将示例中的包和摘要替换为实际改动：
+
+```bash
+smif commit --name fix-parser --package core=patch --no-tag --summary "修复解析器对空输入的处理。"
+```
+
+命令创建变更集文件，包版本保持不变。如果文件名已存在，选择其他名称。运行 `smif status`，检查受影响的包、目标版本，以及依赖或共享版本传播结果。检查变更集，并将其与对应代码改动一起提交。
+
+参考[变更集](https://semifold.noctisynth.org/zh/docs/commands/commit/)和[发布状态](https://semifold.noctisynth.org/zh/docs/commands/status/)。

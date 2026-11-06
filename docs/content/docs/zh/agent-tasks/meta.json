@@ -1,0 +1,4 @@
+{
+  "title": "Agent 任务指南",
+  "pages": ["shared", "init", "config", "changeset", "status", "release"]
+}

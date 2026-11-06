@@ -1,30 +1,40 @@
 ---
 title: 与 Agent 一起使用 Semifold
-description: 为发布任务提供按需读取的 Markdown 文档和可移植的 Semifold Skill。
+description: 安装 Semifold Skill，并从已安装的 CLI 读取任务指引。
 ---
 
-Agent 可以通过[英文索引](/llms.txt)、[中文索引](/zh/llms.txt)或[双语全文](/llms-full.txt)读取与网页同源的文档。索引直接链接逐页 Markdown，便于按任务读取。每个文档网页通过 HTML alternate 链接标记对应的 Markdown 版本。
+Semifold Skill 让 Agent 从已安装的 CLI 发现发布任务并读取操作指引。指引可离线使用，并与 CLI 版本保持一致。
 
-## 获取 Semifold Skill
+## 安装 Skill
 
-仓库以 [Agent Skills 格式](https://agentskills.io/specification)分发 [skills/semifold](https://github.com/noctisynth/semifold/tree/main/skills/semifold)。将包含 `references/` 的完整 `semifold` 目录复制到客户端支持的技能目录，或使用客户端的仓库技能安装功能，指定仓库 `noctisynth/semifold` 与路径 `skills/semifold`。安装和发现位置由客户端决定，本仓库不会自动执行全局安装。
+将 Skill 导出到一个新目录：
 
-Skill 将 changeset 创建、配置维护、发布计划检查和发布故障定位引导到已有命令文档，并遵守使用者仓库规则及授权范围。Semifold 仓库根目录的 `AGENTS.md` 则服务于修改 Semifold 自身源码的 Agent。
+```sh
+smif skill export --output ./semifold
+```
 
-## 开始任务前
+命令会创建包含 `SKILL.md` 的目录。将该目录放到 Agent 客户端支持的技能位置即可，导出目录的父目录需要已存在。
 
-运行 `smif --version` 和 `smif <command> --help`，读取目标仓库的 `.changes/config.toml` 和工作流，使用真实配置的 package ID 和 tag。旧版本与新文档示例不一致时，以已安装版本的 help 确认参数，不从网站文档推断本地版本。
+也可以使用客户端的仓库技能安装功能，指定仓库 `noctisynth/semifold` 和路径 `skills/semifold`，安装 [Semifold Skill](https://github.com/noctisynth/semifold/tree/main/skills/semifold)。该技能采用 [Agent Skills 格式](https://agentskills.io/specification)。
 
-## 任务检查点
+## 使用任务指引
 
-| 任务 | 前置条件与操作 | 预期结果和副作用 | 恢复参考 |
-| --- | --- | --- | --- |
-| 记录变更 | 使用配置中的 package ID；非交互 `smif commit` 提供完整参数 | 创建一个 changeset，不修改版本；随后查看 `smif status` | [Changeset](/zh/docs/commands/commit/) |
-| 检查发布计划 | 有效配置和 changeset；`smif status` | 展示包、版本和传播原因，不改包文件；`--comment` 会写 GitHub | [状态](/zh/docs/commands/status/) |
-| 维护配置 | 已接入项目；`smif config sync --check` | 检查差异；执行 `config sync` 才应用配置更新 | [配置](/zh/docs/commands/config/) |
-| 准备版本 | 确定手动或 CI 流程并检查 hook | 更新版本和 changelog，消费 changeset；hook 失败可能保留部分已应用状态 | [版本更新](/zh/docs/commands/version/) |
-| 发布 | 版本已准备、凭据就绪且发布范围明确 | 写入 registry 及按配置操作 GitHub，报告部分完成状态 | [发布](/zh/docs/commands/publish/) |
+1. 运行 `smif skill list`，列出可用任务。
+2. 运行 `smif skill get <task>`，读取任务指引。
+3. 通过返回的 `data.commands` 查找命令帮助，再按 `data.instructions` 执行。
 
-`--dry-run` 仍可能执行明确允许 dry run 的配置命令，publish preflight 也可能访问 registry。先检查 hook，并遵守网络或本地禁止编译的约束。
+例如：
 
-使用生成的 GitHub Actions 时遵循 [CI 流程](/zh/docs/commands/ci/)，同一次发布不再重复执行本地 version 或 publish。
+```sh
+smif skill get release --language zh
+```
+
+使用 `--language en` 可读取英文指引。省略该选项时，中文系统 locale 使用中文，其他 locale 使用英文。JSON 响应格式见 [skill 命令参考](/zh/docs/commands/skill/)。
+
+读取指引和执行任务使用同一个可执行文件。升级或切换可执行文件后，重新读取任务列表和指引。只要 CLI 支持相同的发现协议，已安装的 Skill 入口可以继续使用。
+
+## 浏览指南
+
+任务指南覆盖[初始化](/zh/docs/agent-tasks/init/)、[配置维护](/zh/docs/agent-tasks/config/)、[变更集](/zh/docs/agent-tasks/changeset/)、[发布计划检查](/zh/docs/agent-tasks/status/)和[发布流程](/zh/docs/agent-tasks/release/)，并提供[通用准备与验证步骤](/zh/docs/agent-tasks/shared/)。
+
+需要 Markdown 产品文档时，可以使用[英文索引](/llms.txt)、[中文索引](/zh/llms.txt)或[双语全文](/llms-full.txt)。每个文档页面也提供对应的 Markdown 链接。

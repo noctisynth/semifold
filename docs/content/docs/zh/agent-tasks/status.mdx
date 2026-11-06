@@ -1,0 +1,14 @@
+---
+title: 检查发布计划
+description: 查看目标版本、变更集影响和传播结果。
+skillTask: status
+skillCommands: [status]
+---
+
+运行 `smif status`，根据仓库配置和待处理变更集计算发布计划。结果包括当前版本与目标版本、直接请求的升级、依赖或共享版本传播、警告和计划指纹。
+
+status 展示计划，不保存计划，也不修改清单文件、变更日志、配置或变更集。需要调整计划时，更新相应变更集或依赖配置，再次运行 status。
+
+`status --comment` 在支持的 CI 环境中，将计划写入 GitHub PR 评论。全局 dry run 跳过评论写入。评论写入失败会报告警告，并保留已计算的计划；其他 GitHub 查询失败可能使命令停止。
+
+CI 前置条件和诊断信息见[发布状态](https://semifold.noctisynth.org/zh/docs/commands/status/)。

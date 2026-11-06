@@ -1,0 +1,16 @@
+---
+title: 在仓库中接入 Semifold
+description: 初始化包发现、变更集配置与可选的 GitHub Actions。
+skillTask: init
+skillCommands: [init]
+---
+
+在仓库根目录运行 `smif init`，创建 Semifold 配置。已有项目使用 `smif config sync` 更新包发现结果。`init --force` 会替换配置。
+
+非交互初始化需要指定扫描的生态、基础分支和发布分支、默认 tag 或不使用 tag，以及生成或不生成 GitHub Actions。`init --help` 列出了对应选项。无法使用交互提示时，必填选择需要通过参数提供。
+
+渲染后的发布分支必须不同于基础分支。CI 使用发布分支维护发布 PR。
+
+使用 `--dry-run` 预览初始化。应用后检查变更集配置、发现的 `[packages]` ID 与路径、resolver 默认值，以及生成的 GitHub Actions 文件。
+
+支持的选择和生成文件见[初始化文档](https://semifold.noctisynth.org/zh/docs/commands/init/)。

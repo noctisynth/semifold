@@ -1,6 +1,6 @@
 [package]
 name = "semifold-napi"
-version = "0.1.1"
+version = "0.1.2"
 publish = false
 edition.workspace = true
 description.workspace = true
@@ -17,7 +17,7 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = { version = "3.16.1", features = ["napi8"] }
 napi-derive = "3.7.0"
-semifold = { version = "0.3.5", path = "../semifold" }
+semifold = { version = "0.4.0", path = "../semifold" }
 
 [lints]
 workspace = true
